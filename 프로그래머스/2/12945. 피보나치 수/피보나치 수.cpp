@@ -2,19 +2,20 @@
 #include <vector>
 
 using namespace std;
-vector<int> fiboDp{0, 1, 1};
 
-int fibo(int n) {
+
+int fibo(int n, vector<int> &fiboDp) {
     if (n < fiboDp.size()) {
         return fiboDp[n];
     }
     
-    fiboDp.push_back((fibo(n - 1) + fibo(n - 2)) % 1234567);
+    fiboDp.push_back((fibo(n - 1, fiboDp) + fibo(n - 2, fiboDp)) % 1234567);
 
     return fiboDp.back();
 }
 
 int solution(int n) {
+    vector<int> fiboDp{0, 1, 1};
     
-    return fibo(n) % 1234567;
+    return fibo(n, fiboDp) % 1234567;
 }

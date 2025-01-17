@@ -14,17 +14,17 @@ int solution(string word)
         weights.push_back(back * 5 + 1);
     }
 
-    unordered_map<char, pair<char, int>> um;
-    um.insert({'A', {'A', 0}});
-    um.insert({'E', {'E', 1}});
-    um.insert({'I', {'I', 2}});
-    um.insert({'O', {'O', 3}});
-    um.insert({'U', {'U', 4}});
+    unordered_map<char, int> um;
+    um.insert({'A', 0});
+    um.insert({'E', 1});
+    um.insert({'I', 2});
+    um.insert({'O', 3});
+    um.insert({'U', 4});
 
     for (int i = 0; i < word.size(); i++)
     {
         auto weightsRIt = weights.rbegin();
-        answer += *(weightsRIt + i) * um[word[i]].second;
+        answer += *(weightsRIt + i) * um[word[i]];
         answer += 1;
     }
 

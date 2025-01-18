@@ -5,51 +5,33 @@ using namespace std;
 
 long long f(long long n)
 {
-    long long answer = 0;
-    vector<long long> rbn;
-    while (n > 0)
-    {
-        rbn.push_back(n % 2);
-        n /= 2;
-    }
+    long long mask = 1;
 
-    long long idx = 0;
-    bool findZero = false;
-    for (; idx < rbn.size(); idx++)
+    while (true)
     {
-        if (rbn[idx] == 0)
+        if ((n & mask) == 0)
         {
-            rbn[idx] = 1;
-            findZero = true;
+            n |= mask;
             break;
         }
+        // cout << mask << '\n';
+        mask <<= 1;
     }
 
-    if (!findZero)
-        rbn.push_back(1);
+    mask >>= 1;
 
-    for (idx -= 1; idx >= 0; idx--)
+    while (mask > 0)
     {
-        if (rbn[idx] == 1)
+        if ((n & mask) != 0)
         {
-            rbn[idx] = 0;
+            n &= ~mask;
             break;
         }
+        // cout << mask << '\n';
+        mask >>= 1;
     }
 
-    for (long long i = 0; i < rbn.size(); i++)
-    {
-        long long cnt = i;
-        long long weight = 1;
-        while (cnt > 0)
-        {
-            weight *= 2;
-            --cnt;
-        }
-        answer += rbn[i] * weight;
-    }
-
-    return answer;
+    return n;
 }
 
 vector<long long> solution(vector<long long> numbers)

@@ -3,7 +3,7 @@
 
 using namespace std;
 
-int quad(vector<vector<int>> &arr, vector<int> &answer, int xBegin, int xEnd,
+int quad(const vector<vector<int>> &arr, vector<int> &answer, int xBegin, int xEnd,
          int yBegin, int yEnd)
 {
     if (xBegin == xEnd && yBegin == yEnd)

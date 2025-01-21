@@ -6,17 +6,18 @@ using namespace std;
 
 string solution(string number, int k)
 {
-    for (int i = 0; i < number.size() - k; i++)
+    string answer;
+    int rmCnt = 0;
+
+    for (char c : number)
     {
-        auto maxIt =
-            max_element(number.begin() + i, number.begin() + i + k + 1);
-
-        k = k - distance(number.begin() + i, maxIt);
-
-        number.erase(number.begin() + i, maxIt);
+        while (!answer.empty() && answer.back() < c && rmCnt < k)
+        {
+            answer.pop_back();
+            ++rmCnt;
+        }
+        answer.push_back(c);
     }
 
-    number.erase(number.end() - k, number.end());
-
-    return number;
+    return string(answer.begin(), answer.begin() + number.size() - k);;
 }

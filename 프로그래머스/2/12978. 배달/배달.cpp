@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <limits>
 using namespace std;
 
 int solution(int N, vector<vector<int>> road, int K)
@@ -9,7 +10,7 @@ int solution(int N, vector<vector<int>> road, int K)
 
     vector<vector<pair<long long, int>>> adjList(
         N + 1, vector<pair<long long, int>>(1, {-1, -1}));
-    vector<long long> dist(N + 1, 500001);
+    vector<long long> dist(N + 1, numeric_limits<long long>::max());
     dist[1] = 0;
 
     for (auto data : road)

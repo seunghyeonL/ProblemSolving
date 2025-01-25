@@ -8,7 +8,7 @@ int solution(vector<int> queue1, vector<int> queue2)
 {
     int size = queue1.size();
     int answer = numeric_limits<int>::max();
-    vector<long long> partialSum(size * 2 + 1);
+    vector<long long> partialSum(size * 4 + 1);
     partialSum[0] = 0;
     long long sum = 0;
 
@@ -22,6 +22,16 @@ int solution(vector<int> queue1, vector<int> queue2)
         partialSum[i + 1] = partialSum[i] + queue2[i - size];
     }
 
+    for (int i = 2 * size; i < 3 * size; i++)
+    {
+        partialSum[i + 1] = partialSum[i] + queue1[i - 2 * size];
+    }
+
+    for (int i = 3 * size; i < 4 * size; i++)
+    {
+        partialSum[i + 1] = partialSum[i] + queue2[i - 3 * size];
+    }
+
     sum = partialSum[2 * size];
     // if (partialSum[size] * 2 == sum)
     // {
@@ -33,7 +43,7 @@ int solution(vector<int> queue1, vector<int> queue2)
     for (int i = 0; i < 2 * size; i++)
     {
         int begin = size - 1 < i ? i : size - 1;
-        int end = 2 * size - 1;
+        int end = 2 * size - 1 + i;
         // cout << "i: " << i << '\n';
 
         while (begin <= end)
@@ -70,3 +80,4 @@ int solution(vector<int> queue1, vector<int> queue2)
 
     return answer;
 }
+

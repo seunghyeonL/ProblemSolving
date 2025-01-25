@@ -5,47 +5,44 @@ using namespace std;
 
 vector<int> solution(vector<int> sequence, int k)
 {
-    vector<int> answer{-1, -1};
     int size = sequence.size();
-    int answerLength{size + 1};
-
-    vector<int> partialSum(size + 1, 0);
-
-    for (int i = 0; i < size; i++)
+    vector<int> answer{0, size - 1};
+    int idx1 = 0, idx2 = 0;
+    
+    vector<int> partialSum(size);
+    partialSum[0] = 0;
+    for(int i = 0 ; i < size ; i++) 
     {
         partialSum[i + 1] = partialSum[i] + sequence[i];
     }
-    // prints(partialSum);
-
-    for (int i = 0; i < size; i++)
+    
+    while(idx1 <= idx2 && idx2 < size) 
     {
-        int begin = i;
-        int end = size - 1;
-        while (begin <= end)
+        if(partialSum[idx2 + 1] - partialSum[idx1] < k) 
         {
-            int mid = (begin + end) / 2;
-
-            if (partialSum[mid + 1] - partialSum[i] > k)
+            ++idx2;
+        }
+        else if(partialSum[idx2 + 1] - partialSum[idx1] > k) 
+        {
+            ++idx1;    
+        }
+        else  
+        {
+            if(answer[1] - answer[0] > idx2 - idx1) 
             {
-                end = mid - 1;
+                answer[0] = idx1;
+                answer[1] = idx2;
             }
-            else if (partialSum[mid + 1] - partialSum[i] == k)
+            
+            if(idx1 < idx2) 
             {
-                int curLength = mid + 1 - i;
-                if (answerLength > curLength)
-                {
-                    answer[0] = i;
-                    answer[1] = mid;
-                    answerLength = curLength;
-                }
+                ++idx1;     
+            }
+            else {
                 break;
-            }
-            else
-            {
-                begin = mid + 1;
             }
         }
     }
-
+    
     return answer;
 }

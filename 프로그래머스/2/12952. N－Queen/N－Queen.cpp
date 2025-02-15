@@ -9,10 +9,6 @@ int solution(int n)
     int answer = 0;
 
     vector<pair<int, int>> queens;
-    vector<pair<int, int>> directions{
-        {1, 0}, {0, 1}, {0, -1}, {-1, 0},
-        {1, 1}, {1, -1}, {-1, -1}, {-1, 1}
-    };
 
     auto isValid = [&](int x, int y)
     {
@@ -39,7 +35,7 @@ int solution(int n)
         
         for (int j = 0; j < n; j++)
         {
-            if (!isValid(   i, j))
+            if (!isValid(i, j))
             {
                 continue;
             }

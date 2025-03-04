@@ -7,26 +7,27 @@ using namespace std;
 int solution(vector<vector<string>> clothes)
 {
     vector<int> resultDp{0};
-    unordered_map<string, int> categoryum;
+    unordered_map<string, int> categoryNum;
 
     for (auto cloth : clothes)
     {
-        auto it = categoryum.find(cloth[1]);
-        if (it == categoryum.end())
-        {
-            categoryum.insert({cloth[1], 1});
-        }
-        else
-        {
-            categoryum[cloth[1]]++;
-        }
+        // auto it = categoryNum.find(cloth[1]);
+        // if (it == categoryNum.end())
+        // {
+        //     categoryNum.insert({cloth[1], 1});
+        // }
+        // else
+        // {
+        //     categoryNum[cloth[1]]++;
+        // }
+        categoryNum[cloth[1]]++;
     }
 
     int idx = 1;
-    for (auto [category, num] : categoryum)
+    for (auto [category, num] : categoryNum)
     {
         resultDp.push_back((resultDp[idx++ - 1] + 1) * (num + 1) - 1);
     }
 
-    return resultDp[categoryum.size()];
+    return resultDp[categoryNum.size()];
 }

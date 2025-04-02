@@ -15,46 +15,46 @@ int solution(string begin, string target, vector<string> words)
     int wordSize = words[0].size();
 
     vector<vector<int>> adjList(size);
-    vector<int> isVisited(size, false);
+    // vector<int> isVisited(size, 0);
+    vector<int> visitedDist(size, -1);
 
     auto canBeConnected = [&](int from, int to) -> bool
     {
         int diffCnt = 0;
         for (int i = 0; i < wordSize; i++)
         {
-            if (words[from][i] != words[to][i]) diffCnt++;
+            if (words[from][i] != words[to][i])
+                diffCnt++;
         }
 
-        if (diffCnt == 1) return true;
-        else return false;
+        return diffCnt == 1;
     };
 
     auto connect = [&](int from, int to) -> void
-    {
-        adjList[from].push_back(to);
-    };
+    { adjList[from].push_back(to); };
 
     auto bfs = [&](int start) -> int
     {
-        isVisited[start] = true;
-        queue<pair<int, int>> q; // {node, distance}
+        visitedDist[start] = 0;
+        // queue<pair<int, int>> q; // {node, distance}
+        queue<int> q; // node
 
-        q.push({start, 0});
+        q.push(start);
 
         while (!q.empty())
         {
-            auto [curNode, dist] = q.front();
-            // cout << "q size : " << q.size() << " curNode : " << curNode << " dist : " << dist << '\n';
+            auto curNode = q.front();
             q.pop();
 
             for (int nextNode : adjList[curNode])
             {
-                if (!isVisited[nextNode])
-                { 
-                    if (words[nextNode] == target) return dist + 1;
+                if (visitedDist[nextNode] == -1)
+                {
+                    if (words[nextNode] == target)
+                        return visitedDist[curNode] + 1;
 
-                    isVisited[nextNode] = true;
-                    q.push({nextNode, dist + 1});
+                    visitedDist[nextNode] = visitedDist[curNode] + 1;
+                    q.push(nextNode);
                 }
             }
         }
@@ -66,7 +66,8 @@ int solution(string begin, string target, vector<string> words)
     {
         for (int j = 0; j < size - 1; j++)
         {
-            if (i == j) continue;
+            if (i == j)
+                continue;
 
             if (canBeConnected(i, j))
             {

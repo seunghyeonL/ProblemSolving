@@ -9,7 +9,7 @@ int solution(int N, vector<vector<int>> road, int K)
     int answer = 0;
 
     vector<vector<pair<long long, int>>> adjList(
-        N + 1, vector<pair<long long, int>>(1, {-1, -1}));
+        N + 1, vector<pair<long long, int>>());
     vector<long long> dist(N + 1, numeric_limits<long long>::max());
     dist[1] = 0;
 
@@ -46,8 +46,8 @@ int solution(int N, vector<vector<int>> road, int K)
 
         for (auto [nextDistDiff, nextNode] : adjList[curNode])
         {
-            if (nextNode == -1)
-                continue;
+            // if (nextNode == -1)
+            //     continue;
             if (dist[curNode] + nextDistDiff < dist[nextNode])
             {
                 dist[nextNode] = dist[curNode] + nextDistDiff;

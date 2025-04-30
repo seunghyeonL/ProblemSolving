@@ -7,7 +7,7 @@ int solution(int N, vector<vector<int>> road, int K)
 {
     int answer = 0;
     
-    vector<vector<long long>> dist(N+1, vector<long long>(N+1, 5000001));
+    vector<vector<long long>> dist(N+1, vector<long long>(N+1, 500001));
     
     for(int i = 1 ; i <= N ; i++)
     {

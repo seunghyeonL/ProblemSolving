@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
-#include <deque>
-#include <algorithm>
+#include <queue>
 
 using namespace std;
 
@@ -9,21 +8,16 @@ int solution(vector<int> players, int m, int k) {
     int answer = 0;
     
     int time = -1;
-    deque<int> servers;
+    queue<int> servers;
     
     while (time < 24)
     {
         time++;
         
         // 서버 반납
-        for(int& timeRemain : servers)
+        while (!servers.empty() && servers.front() == time)
         {
-            timeRemain--;
-        }
-        
-        while (!servers.empty() && servers[0] == 0)
-        {
-            servers.pop_front();
+            servers.pop();
         }
         
         // 필요시 서버 증설
@@ -35,7 +29,7 @@ int solution(vector<int> players, int m, int k) {
         
         for(int i = 0 ; i < additionalServerNeeds ; i++)
         {
-            servers.push_back(k);
+            servers.push(time + k);
         }
     }
     

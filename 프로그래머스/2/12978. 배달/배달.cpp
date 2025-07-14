@@ -5,40 +5,49 @@ using namespace std;
 
 int solution(int N, vector<vector<int>> road, int K)
 {
+    using P = pair<long long, int>;
+		
     int answer = 0;
-    
-    vector<vector<long long>> dist(N+1, vector<long long>(N+1, 500001));
-    
-    for(int i = 1 ; i <= N ; i++)
+
+    vector<vector<P>> adjList(
+        N + 1, vector<P>());
+    vector<long long> dist(N + 1, 500001);
+    dist[1] = 0;
+
+    for (auto data : road)
     {
-        dist[i][i] = 0;
+        int u = data[0], v = data[1];
+        long long load = data[2];
+        adjList[u].push_back({load, v});
+        adjList[v].push_back({load, u});
     }
-    
-    for(auto roadInfo : road)
+
+    priority_queue<P, vector<P>, greater<P>> pq; // 거리, 노드
+    pq.push({0, 1});
+
+    while (!pq.empty())
     {
-        int a = roadInfo[0];
-        int b = roadInfo[1];
-        long long c = roadInfo[2];
-        
-        dist[a][b] = min(dist[a][b], c);
-        dist[b][a] = min(dist[b][a], c);
-    }
-    
-    for(int k = 1 ; k <= N ; k++)
-    {
-        for(int i = 1 ; i <= N ; i++)
+        auto [curDist, curNode] = pq.top();
+        pq.pop();
+
+        if (curDist != dist[curNode])
+            continue;
+
+        for (auto [nextDistDiff, nextNode] : adjList[curNode])
         {
-            for(int j = 1 ; j <= N ; j++)
+            if (dist[curNode] + nextDistDiff < dist[nextNode])
             {
-                
-                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+                dist[nextNode] = dist[curNode] + nextDistDiff;
+                pq.push({dist[nextNode], nextNode});
             }
         }
     }
-    
-    for(int i = 1 ; i <= N ; i++)
+
+    for (int i = 1; i <= N; i++)
     {
-        if(dist[1][i] <= K) answer++;
+        if (dist[i] <= K)
+            answer++;
     }
+
     return answer;
 }

@@ -12,88 +12,91 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
-    // 우물 팔 지점을 정하고
-    // 그 상태에서 최소 비용 연결 구하기?
-    //
-    using P = pair<int, int>;
+    // 우물을 파는것을 하나의 노드로 두고
+    // 다른 노드와의 연결 가중치를 우물파는 비용으로 두고
+    // MST 만들기
 
     int N;
     cin >> N;
 
-    vector<int> wellCosts(N);
+    // 비용, 노드, 노드
+    vector<vector<int>> roadCosts;
+    vector<int> wellCosts(N + 1);
+
     for (int i = 0; i < N; i++)
     {
         cin >> wellCosts[i];
     }
+    wellCosts[N] = 0;
 
-    vector<vector<int>> roadCosts(N, vector<int>(N));
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < N + 1; i++)
     {
-        for (int j = 0; j < N; j++)
+        for (int j = 0; j < N + 1; j++)
         {
-            cin >> roadCosts[i][j];
-        }
-    }
-
-    // 비용, 노드
-    vector<vector<P>> minRoadCosts(N);
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            minRoadCosts[i].emplace_back(
-                min(wellCosts[j], roadCosts[i][j]),
-                j);
-        }
-    }
-
-    auto getMinCost = [&](int firstWell)
-    {
-        // 비용, 피연결노드
-        priority_queue<P, vector<P>, greater<P>> pq;
-        vector<bool> connected(N, false);
-        int connectedNum = 0;
-        int minCost = 0;
-
-        connected[firstWell] = true;
-        connectedNum++;
-        minCost += wellCosts[firstWell];
-
-        for (auto [cost, nextNode] : minRoadCosts[firstWell])
-        {
-            pq.push(
-                {cost < wellCosts[nextNode] ? cost : wellCosts[nextNode],
-                 nextNode});
-        }
-
-        while (connectedNum < N)
-        {
-            // if (pq.empty()) return -1;
-            auto [curCost, curNode] = pq.top();
-            pq.pop();
-
-            if (connected[curNode])
-                continue;
-
-            connected[curNode] = true;
-            connectedNum++;
-            minCost += curCost;
-
-            for (auto [nextCost, nextNode] : minRoadCosts[curNode])
+            if (i == N && j == N)
             {
-                if (connected[nextNode])
-                    continue;
-                pq.emplace(nextCost, nextNode);
+                roadCosts.push_back({wellCosts[N], N, N});
+                continue;
             }
+            else if (i == N)
+            {
+                roadCosts.push_back({wellCosts[j], N, j});
+                continue;
+            }
+            else if (j == N)
+            {
+                roadCosts.push_back({wellCosts[i], i, N});
+                continue;
+            }
+
+            int cost;
+            cin >> cost;
+            roadCosts.push_back({cost, i, j});
+        }
+    }
+
+    sort(roadCosts.begin(), roadCosts.end(), [](vector<int> a, vector<int> b)
+         { return a[0] < b[0]; });
+
+    vector<int> p(N + 1, -1);
+
+    function<int(int)> findRoot = [&](int u)
+    {
+        if (p[u] < 0)
+        {
+            return u;
         }
 
-        return minCost;
+        return p[u] = findRoot(p[u]);
     };
 
-    int answer = 1e9;
-    for (int i = 0; i < N; i++)
+    auto unionSet = [&](int u, int v) -> bool
     {
-        answer = min(answer, getMinCost(i));
+        int rootU = findRoot(u);
+        int rootV = findRoot(v);
+
+        if (rootU == rootV)
+            return false;
+
+        p[rootV] = rootU;
+        return true;
+    };
+
+    int answer = 0;
+    int connectedNum = 0;
+
+    for (auto roadCost : roadCosts)
+    {
+        int cost = roadCost[0];
+        int u = roadCost[1];
+        int v = roadCost[2];
+
+        if (unionSet(u, v))
+        {
+            answer += cost;
+            if (++connectedNum == N)
+                break;
+        }
     }
 
     cout << answer;

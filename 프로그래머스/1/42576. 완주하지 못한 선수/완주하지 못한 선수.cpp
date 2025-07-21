@@ -1,22 +1,27 @@
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <unordered_map>
 
 using namespace std;
 
 string solution(vector<string> participant, vector<string> completion) {
-    int size = completion.size();
+    unordered_map<string, int> completionMap;
     
-    sort(participant.begin(), participant.end());
-    sort(completion.begin(), completion.end());
-    
-    for (int i = 0 ; i < size ; i++)
+    for (string name : participant)
     {
-        if (participant[i] != completion[i])
-        {
-            return participant[i];
-        }
+        completionMap[name] = 0;
     }
     
-    return participant[size];
+    for (string name : completion)
+    {
+        completionMap[name]++;
+    }
+    
+    for (string name : participant)
+    {
+        if (completionMap[name]-- == 0)
+        {
+            return name;
+        }
+    }
 }

@@ -6,6 +6,7 @@ using namespace std;
 
 int solution(vector<vector<int>> sizes) {
     vector<int> maxVec;
+    
     vector<int> minVec; 
 
     for (auto el : sizes) {

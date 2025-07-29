@@ -2,49 +2,60 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
-#include <numeric>
+#include <tuple>
+
 
 using namespace std;
 
-vector<int> solution(vector<string> genres, vector<int> plays) {
+vector<int> solution(vector<string> genres, vector<int> plays)
+{
+    using T = tuple<string, int, int>; // 장르, 재생횟수, 고유번호
+
     vector<int> answer;
     int size = plays.size();
-    
-    unordered_map<string, vector<int>> um;
-    
-    for(int i = 0 ; i < size ; i++)
+
+    unordered_map<string, int> um; // 장르, 재생횟수
+    vector<T> v(size);
+
+    for (int i = 0; i < size; i++)
     {
-        um[genres[i]].push_back(i);
+        v[i] = {genres[i], plays[i], i};
     }
-    
-    vector<pair<string, vector<int>>> v(um.begin(), um.end());
-    auto comp1 = [&plays](auto a, auto b) -> bool
+
+    for (int i = 0; i < size; i++)
     {
-        vector<int> va = a.second;
-        vector<int> vb = b.second;
-        
-        int sumA = accumulate(va.begin(), va.end(), 0, [&plays](int acc, int cur){ return acc + plays[cur]; });
-        int sumB = accumulate(vb.begin(), vb.end(), 0, [&plays](int acc, int cur){ return acc + plays[cur]; });
-        
-        return sumA > sumB;
+        um[genres[i]] += plays[i];
+    }
+
+    auto comp = [&](const T &a, const T &b)
+    {
+        auto [g1, p1, i1] = a;
+        auto [g2, p2, i2] = b;
+
+        if (g1 == g2 && p1 == p2)
+        {
+            return i1 < i2;
+        }
+        else if (g1 == g2)
+        {
+            return p1 > p2;
+        }
+        else
+        {
+            return um[g1] > um[g2];
+        }
     };
-    
-    auto comp2 = [&plays](int a, int b) -> bool
+
+    sort(v.begin(), v.end(), comp);
+
+    unordered_map<string, int> used;
+    for (auto [genre, play, idx] : v)
     {
-        if(plays[a] != plays[b]) return plays[a] > plays[b];
-        else return a < b;
-    };
-    
-    sort(v.begin(), v.end(), comp1);
-    
-    vector<vector<int>> v1;
-    transform(v.begin(), v.end(), back_inserter(v1), [](auto el){return el.second;});
-    for(auto& el : v1)
-    {
-        sort(el.begin(), el.end(), comp2);
-        
-        answer.push_back(el[0]);
-        if(el.size() > 1) answer.push_back(el[1]);
+        if (used.find(genre) == used.end() || used[genre] < 2)
+        {
+            answer.push_back(idx);
+            used[genre]++;
+        }
     }
 
     return answer;

@@ -9,11 +9,6 @@ vector<string> solution(vector<string> s)
     vector<string> answer;
     string s110 = "110";
 
-    auto compare110 = [&](auto it)
-    {
-        return *it == '1' && *(it + 1) == '1' && *(it + 2) == '0';
-    };
-
     auto solve = [&](string str)
     {
         int cnt110 = 0;

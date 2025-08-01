@@ -9,7 +9,7 @@ using namespace std;
 
 string solution(int n, int m, int x, int y, int r, int c, int k) {
     using T = tuple<char, int, int>;
-    string answer = "z";
+    string answer{};
     
     x -= 1;
     y -= 1;
@@ -22,7 +22,7 @@ string solution(int n, int m, int x, int y, int r, int c, int k) {
     };
     
     int dist = getDistance(x, y, r, c);
-    if (abs(k - dist) % 2 != 0) return "impossible";
+    if ((k - dist) % 2 != 0 || k < dist) return "impossible";
     
     vector<T> directions
     {
@@ -37,41 +37,30 @@ string solution(int n, int m, int x, int y, int r, int c, int k) {
         return x >= 0 && x < n && y >= 0 && y < m;  
     };
     
-    string path{};
-    bool endflag = false;
+    int cx = x;
+    int cy = y;
     
-    function<void(int, int)> dfs = [&](int cx, int cy)
+    while (k > 0)
     {
-        if (endflag) return;
-        // 남은 이동 횟수 < 도착점까지 거리
-        if (k - path.size() < getDistance(cx, cy, r, c)) return;
-        
-        if (path.size() == k)
-        {
-            if (cx == r && cy == c)
-            {
-                answer = path;
-                endflag = true;
-            }
-            
-            return;
-        }
+        k--;
+        int px = cx;
+        int py = cy;
         
         for (auto [chr, dx, dy] : directions)
         {
             int nx = cx + dx;
             int ny = cy + dy;
             
-            if (isValid(nx, ny))
-            {
-                path.push_back(chr);
-                dfs(nx, ny);
-                path.pop_back();
-            }
+            if (!isValid(nx, ny) || getDistance(nx, ny, r, c) > k) continue;
+            
+            answer.push_back(chr);
+            cx = nx;
+            cy = ny;
+            break;
         }
-    };
+        
+        if (px == cx && py == cy) return "impossible";
+    }
     
-    dfs(x, y);
-    
-    return answer == "z" ? "impossible" : answer;
+    return answer;
 }

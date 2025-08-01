@@ -19,5 +19,6 @@ string solution(string number, int k)
         answer.push_back(c);
     }
 
-    return string(answer.begin(), answer.begin() + number.size() - k);;
+    return string(answer.begin(), answer.begin() + number.size() - k);
+    // return answer;
 }

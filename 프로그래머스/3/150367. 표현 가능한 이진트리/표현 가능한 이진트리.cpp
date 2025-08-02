@@ -11,14 +11,6 @@ vector<int> solution(vector<long long> numbers)
     using ll = long long;
     vector<int> answer;
 
-    int maxBtSize = 0;
-    ll N = 1e15;
-    while (N > 0)
-    {
-        maxBtSize++;
-        N /= 2;
-    }
-
     auto getReverseBinaryNum = [](ll n)
     {
         vector<int> result;
@@ -31,25 +23,17 @@ vector<int> solution(vector<long long> numbers)
         return result;
     };
 
-    auto getBtSize = [&](int n)
+    // bitlen 보다 큰 최소 포화 이진 트리 크기
+    auto getBtSize = [&](int bitlen)
     {
-        int left = 0;
-        int right = maxBtSize;
+        int h = 0;
 
-        while (left <= right)
+        while ((1 << h) - 1 < bitlen)
         {
-            int mid = (left + right) / 2;
-            if (pow(2, mid + 1) - 1 >= n)
-            {
-                right = mid - 1;
-            }
-            else
-            {
-                left = mid + 1;
-            }
+            h++;
         }
 
-        return pow(2, left + 1) - 1;
+        return (1 << h) - 1;
     };
 
     function<int(const vector<int> &, int, int, bool)> check = [&](const vector<int> &bn, int left, int right, bool zeroflag)
@@ -83,7 +67,7 @@ vector<int> solution(vector<long long> numbers)
             bn.push_back(0);
         }
 
-        answer.push_back(check(bn, 0, bn.size() - 1, 0));
+        answer.push_back(check(bn, 0, bn.size() - 1, false));
     }
 
     return answer;

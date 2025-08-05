@@ -1,4 +1,5 @@
 #include <vector>
+
 #include <string>
 using namespace std;
 
@@ -10,7 +11,7 @@ int solution(vector<string> arr)
     // 숫자 총 개수
     int n = size / 2 + 1;
     
-    vector<vector<P>> dp(n, vector<P>(n));
+    // vector<vector<P>> dp(n, vector<P>(n));
 
     // dp[i][j] : i번째 숫자에서 j번째 숫자 까지 연산을 수행할때 최솟값/최댓값
     vector<vector<int>> minDp(n, vector<int>(n));

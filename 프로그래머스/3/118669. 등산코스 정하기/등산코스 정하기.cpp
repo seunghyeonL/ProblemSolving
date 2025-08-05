@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <unordered_set>
+#include <queue>
 
 using namespace std;
 
@@ -10,111 +11,64 @@ vector<int> solution(int n, vector<vector<int>> paths, vector<int> gates, vector
 {
     using P = pair<int, int>; // 가중치, 노드
 
-    int INF = 1e8 + 1;
-    vector<int> answer{n + 2, INF};
+    int INF = 1e9;
+    vector<int> answer{-1, INF};
 
     unordered_set<int> gateSet(gates.begin(), gates.end());
     unordered_set<int> summitSet(summits.begin(), summits.end());
 
-    vector<int> uf(n + 1, -1);
-
-    function<int(int)> findRoot = [&](int u)
-    {
-        if (uf[u] < 0)
-            return u;
-        return uf[u] = findRoot(uf[u]);
-    };
-
-    auto unionSet = [&](int u, int v)
-    {
-        int ru = findRoot(u);
-        int rv = findRoot(v);
-
-        if (ru == rv)
-            return false;
-
-        if (uf[ru] > uf[rv])
-        {
-            uf[ru] = rv;
-        }
-        else if (uf[ru] == uf[rv])
-        {
-            uf[ru] = rv;
-            uf[rv]--;
-        }
-        else
-        {
-            uf[rv] = ru;
-        }
-        return true;
-    };
-
-    vector<vector<P>>
-        adj(n + 1);
-
-    sort(paths.begin(), paths.end(), [](auto a, auto b)
-         { return a[2] < b[2]; });
-
-    int cnt = 0;
-    for (auto path : paths)
+    vector<vector<P>> adj(n + 1);
+    for (const auto &path : paths)
     {
         int u = path[0];
         int v = path[1];
         int w = path[2];
 
-        if (unionSet(u, v))
-        {
-            cnt++;
-            adj[u].emplace_back(w, v);
-            adj[v].emplace_back(w, u);
-            if (cnt == n - 1)
-                break;
-        }
+        adj[u].emplace_back(w, v);
+        adj[v].emplace_back(w, u);
     }
 
-    int summit = -1;
+    vector<int> intensity(n + 1, INF);
+    priority_queue<P, vector<P>, greater<P>> pq;
 
-    // Printc<vector<vector<P>>, Printc<vector<P>, Printp<P>>> printc;
-    // printc(adj);
-
-    // start, finish, cur -> intensity
-    function<void(int, int, vector<bool> &)> dfs = [&](int cv, int aw, vector<bool> &visited)
+    for (int g : gates)
     {
-        if (aw > answer[1])
-            return;
+        intensity[g] = 0;
+        pq.push({0, g});
+    }
 
-        if (gateSet.count(cv) && answer[1] > aw)
-        {
-            answer[0] = summit;
-            answer[1] = aw;
-            return;
-        }
+    while (!pq.empty())
+    {
+        auto [cw, cv] = pq.top();
+        pq.pop();
 
-        if (summitSet.count(cv) && cv != summit)
-        {
-            return;
-        }
+        if (cw > intensity[cv])
+            continue;
+
+        if (summitSet.count(cv))
+            continue;
 
         for (auto [nw, nv] : adj[cv])
         {
-            // cout << cv << ' ' << nv << '\n';
-            if (visited[nv])
-                continue;
-            visited[nv] = true;
-            dfs(nv, max(aw, nw), visited);
-            visited[nv] = false;
+            int aw = max(cw, nw);
+
+            if (aw < intensity[nv])
+            {
+                intensity[nv] = aw;
+                pq.push({aw, nv});
+            }
         }
-    };
+    }
 
     sort(summits.begin(), summits.end());
 
     for (int s : summits)
     {
-        summit = s;
-        vector<bool> visited(n + 1);
-        visited[summit] = true;
-
-        dfs(summit, 0, visited);
+        if (intensity[s] < answer[1])
+        {
+            answer[0] = s;
+            answer[1] = intensity[s];
+        }
     }
 
     return answer;

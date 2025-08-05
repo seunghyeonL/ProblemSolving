@@ -48,14 +48,14 @@ vector<int> solution(int n, vector<vector<int>> paths, vector<int> gates, vector
         if (summitSet.count(cv))
             continue;
 
-        for (auto [nw, nv] : adj[cv])
+        for (auto [w, nv] : adj[cv])
         {
-            int aw = max(cw, nw);
+            int nw = max(cw, w);
 
-            if (aw < intensity[nv])
+            if (nw < intensity[nv])
             {
-                intensity[nv] = aw;
-                pq.push({aw, nv});
+                intensity[nv] = nw;
+                pq.push({nw, nv});
             }
         }
     }
@@ -73,4 +73,3 @@ vector<int> solution(int n, vector<vector<int>> paths, vector<int> gates, vector
 
     return answer;
 }
-

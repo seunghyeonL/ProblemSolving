@@ -10,9 +10,8 @@ long long solution(vector<int> a, vector<vector<int>> edges)
 
     ll answer = 0;
     int size = a.size();
-    ll INF = 1e12;
 
-    vector<ll> dp(size, INF);
+    vector<ll> dp(size);
     vector<bool> visited(size);
 
     vector<vector<int>> adj(size);
@@ -50,7 +49,7 @@ long long solution(vector<int> a, vector<vector<int>> edges)
 
     for (int i = 0; i < size; i++)
     {
-        answer += dp[i] > 0 ? dp[i] : -dp[i];
+        answer += abs(dp[i]);
     }
 
     return answer;

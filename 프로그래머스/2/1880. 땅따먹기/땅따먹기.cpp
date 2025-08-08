@@ -27,11 +27,5 @@ int solution(vector<vector<int> > land)
         }
     }
 
-    int answer = 0;
-    for (auto el : dp[N - 1])
-    {
-        answer = max(answer, el);
-    }
-    
-    return answer;
+    return *max_element(dp.back().begin(), dp.back().end());
 }

@@ -52,8 +52,8 @@ vector<int> solution(int target)
         return dp[cs];
     };
 
-    solveRec(target);
+    auto [ans1, ans2] = solveRec(target);
 
-    return vector<int>{dp[target].first, dp[target].second};
+    return vector<int>{ans1, ans2};
 }
 

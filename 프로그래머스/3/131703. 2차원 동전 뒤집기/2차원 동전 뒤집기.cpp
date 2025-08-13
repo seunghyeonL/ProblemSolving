@@ -27,31 +27,23 @@ int solution(vector<vector<int>> beginning, vector<vector<int>> target)
 
         for (int i = 1; i < N; i++)
         {
-            bool success1 = false;
-            for (int rFlip = 0; rFlip <= 1; rFlip++)
-            {
-                bool success2 = true;
-                for (int j = 0; j < M; j++)
-                {
-                    if (beginning[i][j] ^ rFlip ^ cFlips[j] != target[i][j])
-                    {
-                        success2 = false;
-                        break;
-                    }
-                }
+            int rFlip = beginning[i][0] ^ target[i][0] ^ cFlips[0];
 
-                if (success2)
+            bool failed = false;
+            for (int j = 1; j < M; j++)
+            {
+                if (beginning[i][j] ^ rFlip ^ cFlips[j] != target[i][j])
                 {
-                    success1 = true;
-                    flips += rFlip;
+                    failed = true;
+                    flips = INF;
                     break;
                 }
             }
-            if (!success1)
-            {
-                flips = INF;
+
+            if (!failed)
+                flips += rFlip;
+            else
                 break;
-            }
         }
 
         return flips;
@@ -61,3 +53,4 @@ int solution(vector<vector<int>> beginning, vector<vector<int>> target)
 
     return answer == INF ? -1 : answer;
 }
+

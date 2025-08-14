@@ -23,21 +23,18 @@ int main(int argc, char const *argv[])
         cin >> w[i] >> v[i];
     }
 
-    vector<vector<int>> dp(N + 1, vector<int>(K + 1, 0)); // dp[i][j] : i번째 물건까지 보고, 허용 무게가 j일때 최대 가치
-    // dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - w[i]] + v[i])
+    vector<int> dp(K + 1, 0); // dp[j] : 허용 무게 i인 가방의 최대 가치
+    // dp[j] = max(dp[j], dp[j - w[i]] + v[i])
 
     for (int i = 1; i <= N; i++)
     {
-        for (int j = 1; j <= K; j++)
+        for (int j = K; j >= w[i]; j--)
         {
-            if (j < w[i])
-                dp[i][j] = dp[i - 1][j];
-            else
-                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - w[i]] + v[i]);
+            dp[j] = max(dp[j], dp[j - w[i]] + v[i]);
         }
     }
 
-    cout << dp[N][K];
+    cout << dp[K];
 
     // inputFileStream.close();
     return 0;

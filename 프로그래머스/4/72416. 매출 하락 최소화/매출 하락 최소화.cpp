@@ -44,46 +44,48 @@ int solution(vector<int> sales, vector<vector<int>> links)
             return dp[cv][enter];
 
         int len = adj[cv].size();
-        int m = 1e9;
 
         if (enter) // cv 참여
         {
-            for (int bitmask = 0; bitmask < (1 << len); bitmask++)
-            {
-                int sum = sales[cv - 1];
-                for (int i = 0; i < len; i++)
-                {
-                    int nv = adj[cv][i];
-                    sum += solveRec(nv, bool(bitmask & (1 << i)));
-                }
+            int sum = sales[cv - 1];
 
-                if (m > sum)
-                {
-                    m = sum;
-                }
+            for (auto nv : adj[cv])
+            {
+                sum += min(solveRec(nv, 0), solveRec(nv, 1));
             }
 
-            return dp[cv][enter] = m;
+            return dp[cv][enter] = sum;
         }
 
         // cv 불참
-        // 팀원 모두 불참은 x -> bitmask 1부터
-        for (int bitmask = 1; bitmask < (1 << len); bitmask++)
+        // 팀원 모두 불참은 x
+        int sum = 0;
+        int extra = 1e9;
+        int extraFlag = true;
+
+        for (auto nv : adj[cv])
         {
-            int sum = 0;
-            for (int i = 0; i < len; i++)
+            int y = solveRec(nv, 1);
+            int n = solveRec(nv, 0);
+
+            if (y > n) // 불참
             {
-                int nv = adj[cv][i];
-                sum += solveRec(nv, bool(bitmask & (1 << i)));
+                extra = min(extra, y - n);
+            }
+            else // 참여
+            {
+                extraFlag = false;
             }
 
-            if (m > sum)
-            {
-                m = sum;
-            }
+            sum += min(y, n);
         }
 
-        return dp[cv][enter] = m;
+        if (extraFlag)
+        {
+            sum += extra;
+        }
+
+        return dp[cv][enter] = sum;
     };
 
     int min1 = solveRec(1, 0);

@@ -6,91 +6,10 @@ using namespace std;
 
 struct Node
 {
-    int idx;
+    int n;
     int x;
-    Node *left;
-    Node *right;
-
-    Node(int inIdx, int inX) : idx(inIdx), x(inX), left(nullptr), right(nullptr) {};
-};
-
-class BST
-{
-private:
-    Node *root;
-
-    void insertRec(int idx, int x, Node *node)
-    {
-        auto *cl = node->left;
-        auto *cr = node->right;
-        int cx = node->x;
-
-        if (cx < x)
-        {
-            if (cr)
-                insertRec(idx, x, cr);
-            else
-                node->right = new Node(idx, x);
-        }
-        else
-        {
-            if (cl)
-                insertRec(idx, x, cl);
-            else
-                node->left = new Node(idx, x);
-        }
-    }
-
-    void preOrderRec(Node *node, vector<int> &result)
-    {
-        auto *cl = node->left;
-        auto *cr = node->right;
-        int cidx = node->idx;
-
-        result.push_back(cidx);
-        if (cl)
-            preOrderRec(cl, result);
-        if (cr)
-            preOrderRec(cr, result);
-    }
-
-    void postOrderRec(Node *node, vector<int> &result)
-    {
-        auto *cl = node->left;
-        auto *cr = node->right;
-        int cidx = node->idx;
-
-        if (cl)
-            postOrderRec(cl, result);
-        if (cr)
-            postOrderRec(cr, result);
-        result.push_back(cidx);
-    }
-
-public:
-    BST(int idx, int x)
-    {
-        root = new Node(idx, x);
-    }
-
-    void insert(int idx, int x)
-    {
-        insertRec(idx, x, root);
-    }
-
-    vector<int> preOrder()
-    {
-        vector<int> result;
-        preOrderRec(root, result);
-        return result;
-    }
-
-    vector<int> postOrder()
-    {
-        vector<int> result;
-        postOrderRec(root, result);
-        return result;
-    }
+    int left = -1;
+    int right = -1;
 };
 
 vector<vector<int>> solution(vector<vector<int>> nodeinfo)
@@ -106,16 +25,95 @@ vector<vector<int>> solution(vector<vector<int>> nodeinfo)
     sort(nodeinfo.begin(), nodeinfo.end(), [](auto a, auto b)
          { return a[1] > b[1]; });
 
-    BST bst(nodeinfo[0][2], nodeinfo[0][0]);
+    vector<Node> bst;
+    bst.push_back({nodeinfo[0][2], nodeinfo[0][0]});
+
+    function<void(int, int, int)> insert = [&](int n, int x, int idx)
+    {
+        Node node = bst[idx];
+        int cn = node.n;
+        int cl = node.left;
+        int cr = node.right;
+        int cx = node.x;
+
+        if (cx > x)
+        {
+            if (cl == -1)
+            {
+                bst.push_back({n, x});
+                bst[idx].left = bst.size() - 1;
+            }
+            else
+            {
+                insert(n, x, cl);
+            }
+        }
+        else
+        {
+            if (cr == -1)
+            {
+                bst.push_back({n, x});
+                bst[idx].right = bst.size() - 1;
+            }
+            else
+            {
+                insert(n, x, cr);
+            }
+        }
+    };
+
+    // Printc<vector<vector<int>>, Printc<vector<int>>> printc;
+    // printc(nodeinfo);
 
     for (int i = 1; i < nodeinfo.size(); i++)
     {
-        auto &info = nodeinfo[i];
-        bst.insert(info[2], info[0]);
+        auto info = nodeinfo[i];
+        insert(info[2], info[0], 0);
+        // {
+        //     for (auto node : bst)
+        //     {
+        //         cout << '(' << node.n << ", " << node.left << ", " << node.right << ") ";
+        //     }
+        //     cout << '\n';
+        // }
     }
 
-    answer.push_back(bst.preOrder());
-    answer.push_back(bst.postOrder());
+    vector<int> preOrderResult;
+    vector<int> postOrderResult;
+
+    function<void(int)> preOrder = [&](int idx)
+    {
+        auto node = bst[idx];
+        int cl = node.left;
+        int cr = node.right;
+        int n = node.n;
+
+        preOrderResult.push_back(n);
+        if (cl != -1)
+            preOrder(cl);
+        if (cr != -1)
+            preOrder(cr);
+    };
+
+    function<void(int)> postOrder = [&](int idx)
+    {
+        auto node = bst[idx];
+        int cl = node.left;
+        int cr = node.right;
+        int n = node.n;
+
+        if (cl != -1)
+            postOrder(cl);
+        if (cr != -1)
+            postOrder(cr);
+        postOrderResult.push_back(n);
+    };
+
+    preOrder(0);
+    postOrder(0);
+
+    answer.push_back(preOrderResult);
+    answer.push_back(postOrderResult);
 
     return answer;
 }

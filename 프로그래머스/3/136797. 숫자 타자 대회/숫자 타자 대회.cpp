@@ -14,14 +14,13 @@ int solution(string numbers)
 
     for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++)
-            keypad[i][j] = 1 + i + 3 * j;
+            keypad[i][j] = 1 + j + 3 * i;
 
     auto isValid = [](int x, int y)
     {
         return x >= 0 && x < 3 && y >= 0 && y < 3;
     };
 
-    // 누를때 1을 추가하는 방식으로
     vector<T> moves{
         {2, 1, 0},
         {2, -1, 0},
@@ -32,6 +31,7 @@ int solution(string numbers)
         {3, -1, -1},
         {3, 1, -1}};
 
+    // 1~9 부터 채우고
     vector<vector<int>> dist(10, vector<int>(10, INF));
     for (int i = 0; i < 10; i++)
     {
@@ -58,6 +58,7 @@ int solution(string numbers)
         }
     }
 
+    // 0 따로 채워주기
     dist[7][0] = 3;
     dist[0][7] = 3;
     dist[9][0] = 3;
@@ -65,18 +66,17 @@ int solution(string numbers)
     dist[8][0] = 2;
     dist[0][8] = 2;
 
+    // 플로이드 워셜
     for (int k = 0; k < 10; k++)
         for (int i = 0; i < 10; i++)
             for (int j = 0; j < 10; j++)
                 dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
 
+    // 같은 숫자 누를때도 1 소요
     for (int i = 0; i < 10; i++)
     {
         dist[i][i] = 1;
     }
-
-    // Printc<vector<vector<int>>, Printc<vector<int>>> printc;
-    // printc(dist);
 
     int size = numbers.size();
     vector<vector<vector<int>>> dp(size + 1, vector<vector<int>>(10, vector<int>(10, INF))); // dp[n][l][k] : n번째 숫자에 l, k위치에 손가락 둘때의 최소 누적값

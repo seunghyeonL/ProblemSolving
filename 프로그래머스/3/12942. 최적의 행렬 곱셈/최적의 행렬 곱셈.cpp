@@ -14,11 +14,6 @@ int solution(vector<vector<int>> matrix_sizes) {
         dp[i][i] = 0;
     }
     
-    for (int i = 0 ; i < N ; i++)
-    {
-        dp[i][i] = 0;
-    }
-    
     for (int i = 0 ; i < N - 1 ; i++)
     {
         int a = matrix_sizes[i][0];

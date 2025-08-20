@@ -18,7 +18,10 @@ int solution(vector<vector<int>> land, int height)
     { return x >= 0 && x < N && y >= 0 && y < N; };
 
     auto getCost = [&](int h1, int h2)
-    { return max(abs(h1 - h2) - height, 0); };
+    {
+        int diff = abs(h1 - h2);
+        return diff <= height ? 0 : diff; 
+    };
 
     vector<T> edges;
 
@@ -82,16 +85,13 @@ int solution(vector<vector<int>> land, int height)
     };
 
     sort(edges.begin(), edges.end());
-    // Printc<vector<T>, Printt> printc;
-    // printc(edges);
 
     int cnt = 0;
     for (auto [c, u, v] : edges)
     {
         if (unionSet(u, v))
         {
-            if (c > 0)
-                answer += c + height;
+            answer += c;
             cnt++;
         }
 

@@ -17,7 +17,6 @@ int solution(vector<string> user_id, vector<string> banned_id)
     }
 
     unordered_map<string, unordered_set<char>> adj;
-
     for (string id : user_id)
     {
         string tmp{};
@@ -60,6 +59,7 @@ int solution(vector<string> user_id, vector<string> banned_id)
 
     int bsize = banned_id.size();
     set<set<string>> resultSet;
+    set<string> curSet;
     function<void(int, set<string>)> dfs = [&](int idx, auto s)
     {
         if (idx == bsize)
@@ -77,7 +77,7 @@ int solution(vector<string> user_id, vector<string> banned_id)
         }
     };
 
-    dfs(0, set<string>());
+    dfs(0, curSet);
 
     return resultSet.size();
 }

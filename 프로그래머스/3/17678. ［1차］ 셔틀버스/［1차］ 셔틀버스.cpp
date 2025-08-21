@@ -64,9 +64,6 @@ string solution(int n, int t, int m, vector<string> timetable)
         bustimes.push_back(firstBustime + i * t);
     }
 
-    // true: 콘, false: 타인
-    queue<bool> waiting;
-
     auto check = [&](int t)
     {
         priority_queue<P, vector<P>, greater<P>> pq;

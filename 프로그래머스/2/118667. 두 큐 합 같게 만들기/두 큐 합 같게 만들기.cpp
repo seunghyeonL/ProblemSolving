@@ -1,52 +1,65 @@
 #include <string>
 #include <vector>
-#include <deque>
+#include <numeric>
 
 using namespace std;
+using ll = long long;
 
 int solution(vector<int> queue1, vector<int> queue2)
 {
-    int size = queue1.size();
-    int answerMax = size * 4;
     int answer = 0;
+    int size1 = queue1.size();
+    int size2 = queue2.size();
+    int size = size1 + size2;
 
-    deque<int> dq1(size);
-    long long sum1 = 0;
-    deque<int> dq2(size);
-    long long sum2 = 0;
-    for (int i = 0; i < size; i++)
+    vector<int> v;
+    v.reserve(size);
+
+    for (int i : queue1)
     {
-        sum1 += queue1[i];
-        sum2 += queue2[i];
-        dq1[i] = queue1[i];
-        dq2[i] = queue2[i];
+        v.push_back(i);
     }
 
-    while (sum1 != sum2 && answer < answerMax)
+    for (int i : queue2)
     {
-        if (sum1 < sum2)
+        v.push_back(i);
+    }
+
+    int idx1 = 0, idx2 = size1;
+    ll sum1 = accumulate(queue1.begin(), queue1.end(), 0LL);
+    ll sum2 = accumulate(queue2.begin(), queue2.end(), 0LL);
+
+    while (idx1 <= size || idx2 <= size + size1)
+    {
+        if (sum1 == sum2)
+            break;
+        else if (sum1 > sum2)
         {
-            int front2 = dq2.front();
-            dq2.pop_front();
-            dq1.push_back(front2);
-            sum2 -= front2;
-            sum1 += front2;
+            if (idx1 == size)
+            {
+                answer = -1;
+                break;
+            }
+
+            sum1 -= v[idx1];
+            sum2 += v[idx1];
+            idx1++;
+            answer++;
         }
         else
         {
-            int front1 = dq1.front();
-            dq1.pop_front();
-            dq2.push_back(front1);
-            sum1 -= front1;
-            sum2 += front1;
+            if (idx2 == size + size1)
+            {
+                answer = -1;
+                break;
+            }
+
+            sum1 += v[idx2 % size];
+            sum2 -= v[idx2 % size];
+            idx2++;
+            answer++;
         }
-        answer++;
     }
 
-    if (answer == answerMax)
-    {
-        answer = -1;
-    }
     return answer;
 }
-

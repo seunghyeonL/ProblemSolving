@@ -103,9 +103,6 @@ int solution(vector<vector<int>> board, int r, int c)
                 break;
             }
 
-            // cout << "cx: " << cx << " cy: " << cy << '\n';
-            // printc(getNextPoints(cx, cy));
-
             for (auto [nx, ny] : getNextPoints(cx, cy))
             {
                 if (dist[nx][ny] == -1)

@@ -34,6 +34,7 @@ int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
     vector<P> loc{{aloc[0], aloc[1]}, {bloc[0], bloc[1]}};
 
     // 내가 이기는 최소 횟수
+    // 이길수 없으면 INF이상의 값 반환
     function<int(bool)> win1Rec = [&](bool is1turn)
     {
         int cx, cy;
@@ -90,6 +91,7 @@ int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
     };
 
     // 상대가 이기는 최소 횟수
+    // 이길 수 없으면 INF이상의 값 반환
     function<int(bool)> win2Rec = [&](bool is1turn)
     {
         int cx, cy;
@@ -148,5 +150,5 @@ int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
     int win1 = win1Rec(true);
     int win2 = win2Rec(true);
 
-    return min(win1Rec(true), win2Rec(true));
+    return min(win1, win2);
 }

@@ -86,8 +86,6 @@ int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
             }
         }
 
-        if (result >= INF)
-            result = INF;
         return result;
     };
 
@@ -144,8 +142,6 @@ int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
             }
         }
 
-        if (result >= INF)
-            result = INF;
         return result;
     };
 

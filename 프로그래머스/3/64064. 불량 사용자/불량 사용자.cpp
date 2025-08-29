@@ -60,24 +60,24 @@ int solution(vector<string> user_id, vector<string> banned_id)
     int bsize = banned_id.size();
     set<set<string>> resultSet;
     set<string> curSet;
-    function<void(int, set<string>)> dfs = [&](int idx, auto s)
+    function<void(int)> dfs = [&](int idx)
     {
         if (idx == bsize)
         {
-            resultSet.insert(s);
+            resultSet.insert(curSet);
             return;
         }
 
         for (auto str : v[idx])
         {
-            if (s.count(str)) continue;
-            s.insert(str);
-            dfs(idx + 1, s);
-            s.erase(str);
+            if (curSet.count(str)) continue;
+            curSet.insert(str);
+            dfs(idx + 1);
+            curSet.erase(str);
         }
     };
 
-    dfs(0, curSet);
+    dfs(0);
 
     return resultSet.size();
 }

@@ -9,36 +9,97 @@ int solution(vector<string> words)
     int answer = 0;
     int size = words.size();
 
-    sort(words.begin(), words.end());
+    int trieSize = 0;
 
-    auto getSameLen = [](const string &a, const string &b)
+    for (string word : words)
     {
-        int sizeA = a.size();
-        int sizeB = b.size();
-        int result = min(sizeA, sizeB);
+        trieSize += word.size();
+    }
 
-        for (int i = 0; i < min(sizeA, sizeB); i++)
+    int unused = 1;
+    vector<vector<int>> trie(trieSize + 1, vector<int>(26, -1));
+    vector<bool> endPoints(trieSize + 1, false);
+    // 이 노드 포함 하위 word 개수
+    vector<int> wordCnt(trieSize + 1, 0);
+
+    auto c2i = [](char c) { return c - 'a'; };
+
+    // insert
+    for (string word : words)
+    {
+        int cur = 0;
+        for (int i = 0; i < word.size(); i++)
         {
-            if (a[i] != b[i])
+            char c = word[i];
+
+            if (trie[cur][c2i(c)] != -1)
             {
-                result = i;
-                break;
+                cur = trie[cur][c2i(c)];
+                continue;
+            }
+
+            trie[cur][c2i(c)] = unused;
+            cur = unused;
+            unused++;
+        }
+        endPoints[cur] = true;
+    }
+
+    // Printc<vector<vector<int>>, Printc<vector<int>>>()(trie);
+
+    function<int(int)> setWordCnt = [&](int cv) -> int
+    {
+        if (wordCnt[cv])
+            return wordCnt[cv];
+
+        int result = 0;
+
+        if (endPoints[cv])
+            result++;
+
+        for (int nv : trie[cv])
+        {
+            if (nv == -1)
+                continue;
+
+            result += setWordCnt(nv);
+        }
+
+        return wordCnt[cv] = result;
+    };
+
+    // cout << unused << '\n';
+    setWordCnt(0);
+
+    // Printc<vector<bool>>()(endPoints);
+    // Printc<vector<int>>()(wordCnt);
+
+    function<void(int, int)> dfs = [&](int cv, int depth)
+    {
+        if (cv != 0)
+        {
+            if (wordCnt[cv] == 1)
+            {
+                answer += depth;
+                return;
+            }
+
+            if (endPoints[cv])
+            {
+                answer += depth;
             }
         }
 
-        return result;
+        for (int nv : trie[cv])
+        {
+            if (nv == -1)
+                continue;
+
+            dfs(nv, depth + 1);
+        }
     };
 
-    // 사전순으로 정렬한 words에서 인접한 것 끼리 앞에서부터 최대로 겹치는 수를
-    // 파악
-    for (int i = 0; i < size; i++)
-    {
-        int len = words[i].size();
-        int l1 = i > 0 ? getSameLen(words[i - 1], words[i]) : 0;
-        int l2 = i < size - 1 ? getSameLen(words[i], words[i + 1]) : 0;
-
-        answer += min(max(l1, l2) + 1, len);
-    }
+    dfs(0, 0);
 
     return answer;
 }

@@ -1,64 +1,67 @@
 #include <string>
 #include <vector>
-#include <tuple>
-#include <queue>
 #include <functional>
 
 using namespace std;
 
-int solution(int n, vector<vector<int>> costs) {
-    int result = 0;
-    
-    vector<vector<pair<int, int>>> adj(n); // {비용, 노드}
-    
-    for(auto edgeCost : costs)
+int solution(int n, vector<vector<int>> costs)
+{
+    int answer = 0;
+    vector<int> uf(n, -1);
+
+    function<int(int)> findRoot = [&](int u)
     {
-        int u = edgeCost[0];
-        int v = edgeCost[1];
-        int cost = edgeCost[2];
-        
-        adj[u].push_back({cost, v});
-        adj[v].push_back({cost, u});
-    }
-    
-    // 비용, 노드, 노드
-    priority_queue<
-        pair<int, int>, 
-        vector<pair<int, int>>, 
-        greater<pair<int, int>>
-            > pq;
-    
-    vector<bool> connected(n, false);
-    int connectedNum  = 0;
-    
-    connected[0] = true;
-    connectedNum++;
-    for(auto [cost, v] : adj[0])
+        if (uf[u] < 0)
+            return u;
+
+        return uf[u] = findRoot(uf[u]);
+    };
+
+    auto unionSet = [&](int u, int v) -> bool
     {
-        pq.push({cost, v});
-    }
-    
-    while(connectedNum < n)
-    {
-        auto [cost, v] = pq.top();
-        pq.pop();
-        
-        // 이미 연결된 상태 건너뛰기
-        if(connected[v]) continue;
-        
-        // 연결하기
-        result += cost;
-        connected[v] = true;
-        connectedNum++;
-        
-        // pq에 새로 연결된 노드의 edge들 추가
-        for(auto [nextCost, nextV] : adj[v])
+        u = findRoot(u);
+        v = findRoot(v);
+
+        if (u == v)
+            return false;
+
+        // v에 u를 붙일거임
+        // union by rank
+
+        if (uf[u] < uf[v])
         {
-            if(connected[nextV]) continue;
-            pq.push({nextCost, nextV});
+            swap(u, v);
         }
+        else if (uf[u] == uf[v])
+        {
+            uf[v]--;
+        }
+
+        uf[u] = v;
+
+        return true;
+    };
+
+    sort(costs.begin(), costs.end(),
+         [](const auto &a, const auto &b) { return a[2] < b[2]; });
+
+    // 연결 갯수
+    int cnt = 0;
+    for (const auto &cost : costs)
+    {
+        int u = cost[0];
+        int v = cost[1];
+        int c = cost[2];
+
+        if (unionSet(u, v))
+        {
+            cnt++;
+            answer += c;
+        }
+
+        if (cnt == n - 1)
+            break;
     }
-    
-    
-    return result;
+
+    return answer;
 }

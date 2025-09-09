@@ -1,83 +1,140 @@
 #include <string>
 #include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include <set>
 #include <functional>
+#include <cassert>
 
 using namespace std;
+
 
 int solution(vector<string> user_id, vector<string> banned_id)
 {
     int size = user_id.size();
-    unordered_set<string> userIdSet;
-    for (string id : user_id)
+    int trieSize = 0;
+    for (string &id : user_id)
     {
-        userIdSet.insert(id);
+        trieSize += id.size();
     }
 
-    unordered_map<string, unordered_set<char>> adj;
-    for (string id : user_id)
+    // 숫자 : 0 ~ 9 알파벳 : 10 ~ 35
+    auto char2Idx = [](char c) -> int
     {
-        string tmp{};
-        adj[tmp].insert(id[0]);
-        tmp += id[0];
-        for (int i = 1; i < id.size(); i++)
+        if (c >= '0' && c <= '9')
+            return c - '0';
+
+        if (c >= 'a' && c <= 'z')
+            return 10 + (c - 'a');
+
+        assert(0);
+    };
+
+    auto idx2Char = [](int i) -> char
+    {
+        if (i >= 0 && i <= 9)
         {
-            adj[tmp].insert(id[i]);
-            tmp += id[i];
+            return '0' + i;
         }
+        else if (i <= 35)
+        {
+            return 'a' + i - 10;
+        }
+
+        assert(0);
+    };
+
+    // trie[노드][알파벳 or 숫자] : 다음노드
+    vector<vector<int>> trie(trieSize + 1, vector<int>(36));
+    vector<bool> endNode(trieSize + 1, false);
+    int unused = 1;
+
+    // insert
+    for (string id : user_id)
+    {
+        int cur = 0;
+
+        for (int i = 0; i < id.size(); i++)
+        {
+            int n = char2Idx(id[i]);
+            if (trie[cur][n])
+            {
+                cur = trie[cur][n];
+            }
+            else
+            {
+                trie[cur][n] = unused++;
+                cur = trie[cur][n];
+            }
+        }
+
+        endNode[cur] = true;
     }
 
-    function<void(int, string, const string &, unordered_set<string> &)> solve =
-        [&](int idx, string cs, const string &bs, auto &us)
+    set<set<string>> results;
+    vector<vector<string>> v;
+    v.reserve(banned_id.size());
+
+    function<void(const string &, string, int, vector<string> &)> dfs =
+        [&](const string &bid, string cur, int cv, auto &posBanIds)
     {
-        if (idx == bs.size())
-        {   
-            if (userIdSet.count(cs))
-                us.insert(cs);
+        int i = cur.size();
+        if (i == bid.size())
+        {
+            if (endNode[cv]) posBanIds.push_back(cur);
+            
             return;
         }
 
-        int schar = bs[idx];
-
-        for (auto nchar : adj[cs])
+        char c = bid[i];
+        if (c != '*')
         {
-            if (nchar == schar || schar == '*')
-                solve(idx + 1, cs + nchar, bs, us);
+            if (int nv = trie[cv][char2Idx(c)])
+            {
+                dfs(bid, cur + c, nv, posBanIds);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 36; i++)
+            {
+                int nv = trie[cv][i];
+                if (!nv)
+                    continue;
+
+                dfs(bid, cur + idx2Char(i), nv, posBanIds);
+            }
         }
     };
 
-    int answer = 1;
-    vector<unordered_set<string>> v;
-    for (string id : banned_id)
+    for (string bid : banned_id)
     {
-        unordered_set<string> us;
-        solve(0, string(), id, us);
-        v.push_back(us);
+        vector<string> posBanIds;
+        dfs(bid, "", 0, posBanIds);
+        v.push_back(posBanIds);
     }
 
-    int bsize = banned_id.size();
-    set<set<string>> resultSet;
     set<string> curSet;
-    function<void(int)> dfs = [&](int idx)
+    function<void(int)> resultRec = [&](int idx)
     {
-        if (idx == bsize)
+        if (idx == banned_id.size())
         {
-            resultSet.insert(curSet);
+            results.insert(curSet);
             return;
         }
 
-        for (auto str : v[idx])
+        for (string str : v[idx])
         {
-            if (curSet.count(str)) continue;
+            if (curSet.count(str))
+                continue;
+
             curSet.insert(str);
-            dfs(idx + 1);
+            resultRec(idx + 1);
             curSet.erase(str);
         }
     };
 
-    dfs(0);
+    // Printc<vector<vector<string>>, Printc<vector<string>>>()(v);
 
-    return resultSet.size();
+    resultRec(0);
+
+    return results.size();
 }

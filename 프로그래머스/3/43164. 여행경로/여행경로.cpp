@@ -11,17 +11,6 @@ vector<string> solution(vector<vector<string>> tickets)
     vector<string> history{"ICN"};
     int size = tickets.size();
     
-//     vector<pair<string, string>> ptickets;
-//     ptickets.reserve(size);
-    
-//     for (const auto& ticket : tickets)
-//     {
-//         string u = ticket[0];
-//         string v = ticket[1];
-        
-//         ptickets.emplace_back(u, v);
-//     }
-    
     sort(tickets.begin(), tickets.end(), [](const auto& a, const auto& b){ 
         return a[1] < b[1];
     });
@@ -42,8 +31,6 @@ vector<string> solution(vector<vector<string>> tickets)
     bool found = false;
     function<void(string, int)> dfs = [&](string cv, int depth)
     {
-        // if (found) return;
-        
         if (depth == size)
         {
             found = true;

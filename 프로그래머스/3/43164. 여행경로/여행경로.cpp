@@ -1,6 +1,6 @@
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <algorithm>
 #include <functional>
 
@@ -8,76 +8,64 @@ using namespace std;
 
 vector<string> solution(vector<vector<string>> tickets)
 {
-    int ticketNumbers = tickets.size();
-    // ticket 사용여부
-    vector<bool> isUsed(ticketNumbers, false);
-
-    // pair로 만든 tickets
-    vector<pair<string, string>> ptickets;
-    for (auto ticket : tickets)
-    {
-        ptickets.push_back({ticket[0], ticket[1]});
-    }
-    // 알파벳 빠른거 부터 탐색하도록 sort
-    sort(ptickets.begin(), ptickets.end());
-
-    // 도시 방문 기록
     vector<string> history{"ICN"};
-
-    // 티켓 인접리스트 -> node: ticketIndex, edge: possible ticket to use next
-    vector<vector<int>> ticketAdjList(ticketNumbers);
-    for (int i = 0; i < ticketNumbers; i++)
+    int size = tickets.size();
+    
+//     vector<pair<string, string>> ptickets;
+//     ptickets.reserve(size);
+    
+//     for (const auto& ticket : tickets)
+//     {
+//         string u = ticket[0];
+//         string v = ticket[1];
+        
+//         ptickets.emplace_back(u, v);
+//     }
+    
+    sort(tickets.begin(), tickets.end(), [](const auto& a, const auto& b){ 
+        return a[1] < b[1];
+    });
+    
+    // 출발 공항, 티켓 idx
+    unordered_map<string, vector<int>> adj;
+    
+    for (int i = 0 ; i < size ; i++)
     {
-        auto [iStart, iDest] = ptickets[i];
-        for (int j = 0; j < ticketNumbers; j++)
-        {
-            auto [jStart, jDest] = ptickets[j];
-            if (iDest == jStart)
-            {
-                ticketAdjList[i].push_back(j);
-            }
-        }
+        auto& ticket = tickets[i];
+        string u = ticket[0];
+        
+        adj[u].push_back(i);
     }
-
-    function<bool(int, int)> dfs = [&](int curTicketIdx, int depth)
+    
+    vector<bool> used(size);
+    
+    bool found = false;
+    function<void(string, int)> dfs = [&](string cv, int depth)
     {
-        if (depth == ticketNumbers)
+        // if (found) return;
+        
+        if (depth == size)
         {
-            return true;
+            found = true;
+            return;
         }
-
-        for (int nextTicketIdx : ticketAdjList[curTicketIdx])
+        
+        for (int nt : adj[cv])
         {
-            auto [start, dest] = ptickets[nextTicketIdx];
-            if (!isUsed[nextTicketIdx])
-            {
-                isUsed[nextTicketIdx] = true;
-                history.push_back(dest);
-
-                if (dfs(nextTicketIdx, depth + 1))
-                    return true;
-
-                isUsed[nextTicketIdx] = false;
-                history.pop_back();
-            }
-        }
-        return false;
-    };
-
-    for (int i = 0; i < ticketNumbers; i++)
-    {
-        auto [start, dest] = ptickets[i];
-        if (start == "ICN")
-        {
-            history.push_back(dest);
-            isUsed[i] = true;
+            if (used[nt]) continue;
+            used[nt] = true;
             
-            if(dfs(i, 1)) break;
+            string nv = tickets[nt][1];
             
-            isUsed[i] = false;
+            history.push_back(nv);
+            dfs(nv, depth + 1);
+            if (found) return;
             history.pop_back();
+            
+            used[nt] = false;
         }
-    }
-
+    };
+    
+    dfs("ICN", 0);
     return history;
 }

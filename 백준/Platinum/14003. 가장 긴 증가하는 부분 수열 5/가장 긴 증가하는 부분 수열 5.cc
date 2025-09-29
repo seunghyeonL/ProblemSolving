@@ -38,7 +38,8 @@ int main(int argc, char const *argv[])
     {
         int cur = arr[i];
 
-        auto it = lower_bound(lis, lis + N, LMT);
+        auto it =
+            partition_point(lis, lis + N, [&](int el) { return el < LMT; });
         int r = it - lis - 1;
         int l = 0;
 
@@ -61,7 +62,8 @@ int main(int argc, char const *argv[])
         pre[i] = tidx == 0 ? i : lis[tidx - 1];
     }
 
-    int res = lower_bound(lis, lis + N, LMT) - lis;
+    int res =
+        partition_point(lis, lis + N, [&](int el) { return el < LMT; }) - lis;
 
     cout << res << '\n';
 
@@ -84,3 +86,4 @@ int main(int argc, char const *argv[])
     // inputFileStream.close();
     return 0;
 }
+

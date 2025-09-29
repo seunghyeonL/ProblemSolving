@@ -32,43 +32,26 @@ int main(int argc, char const *argv[])
 
     fill(lis, lis + N, LMT);
 
-    auto check = [&](int idx, int cur) { return arr[idx] >= cur; };
-
+    int len = 0;
     for (int i = 0; i < N; i++)
     {
         int cur = arr[i];
 
-        auto it =
-            partition_point(lis, lis + N, [&](int el) { return el < LMT; });
-        int r = it - lis - 1;
-        int l = 0;
+        auto it = partition_point(lis, lis + len,
+                                  [&](int el) { return arr[el] < cur; });
 
-        while (l <= r)
-        {
-            int m = (l + r) / 2;
-            if (check(lis[m], cur))
-            {
-                r = m - 1;
-            }
-            else
-            {
-                l = m + 1;
-            }
-        }
-
-        int tidx = l;
-        lis[tidx] = i;
+        int tidx = it - lis;
+        if (tidx == len)
+            len++;
 
         pre[i] = tidx == 0 ? i : lis[tidx - 1];
+        lis[tidx] = i;
     }
 
-    int res =
-        partition_point(lis, lis + N, [&](int el) { return el < LMT; }) - lis;
-
-    cout << res << '\n';
+    cout << len << '\n';
 
     vector<int> history;
-    int p = lis[res - 1];
+    int p = lis[len - 1];
 
     while (1)
     {

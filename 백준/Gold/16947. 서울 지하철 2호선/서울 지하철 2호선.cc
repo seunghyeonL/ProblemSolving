@@ -2,6 +2,7 @@
 using namespace std;
 int N;
 vector<int> adj[3001];
+int deg[3001];
 
 int main(int argc, char const *argv[])
 {
@@ -17,7 +18,6 @@ int main(int argc, char const *argv[])
     /*
      */
 
-    int N;
     cin >> N;
 
     for (int i = 0; i < N; i++)
@@ -27,86 +27,61 @@ int main(int argc, char const *argv[])
 
         adj[u].push_back(v);
         adj[v].push_back(u);
+        deg[u]++;
+        deg[v]++;
     }
 
     vector<int> distFromCycle(N + 1, -1);
+    queue<int> q;
 
+    for (int i = 1; i <= N; i++)
     {
-        vector<int> depth(N + 1, -1);
-        vector<int> pre(N + 1, -1);
-
-        bool found = false;
-        function<void(int, int)> dfs = [&](int cv, int pv)
+        // leaf
+        if (deg[i] == 1)
         {
-            if (found)
-                return;
-            for (int nv : adj[cv])
-            {
-                if (nv == pv)
-                    continue;
-
-                if (depth[nv] == -1)
-                {
-                    depth[nv] = depth[cv] + 1;
-                    pre[nv] = cv;
-                    dfs(nv, cv);
-                }
-                else if (depth[nv] < depth[cv])
-                {
-                    int p = cv;
-                    while (1)
-                    {
-                        distFromCycle[p] = 0;
-                        if (p == nv)
-                            break;
-                        p = pre[p];
-                    }
-                    found = true;
-                    return;
-                }
-            }
-        };
-
-        for (int v = 1; v <= N; v++)
-        {
-            if (found)
-                break;
-
-            if (depth[v] == -1)
-            {
-                depth[v] = 0;
-                dfs(v, 0);
-            }
+            q.push(i);
         }
     }
 
-    vector<bool> visited(N + 1);
-
-    function<void(int)> dfs = [&](int cv)
+    // leaf pruning
+    while (!q.empty())
     {
-        visited[cv] = true;
+        int cv = q.front();
+        q.pop();
+
+        deg[cv] = 0;
 
         for (int nv : adj[cv])
         {
-            if (!visited[nv])
+            if (deg[nv] > 0 && --deg[nv] == 1)
+                q.push(nv);
+        }
+    }
+
+    for (int i = 1; i <= N; i++)
+    {
+        if (deg[i] > 1)
+        {
+            q.push(i);
+            distFromCycle[i] = 0;
+        }
+    }
+
+    // 가지 depth 채우기
+    while (!q.empty())
+    {
+        auto cv = q.front();
+        q.pop();
+
+        for (int nv : adj[cv])
+        {
+            if (distFromCycle[nv] == -1)
             {
-                if (distFromCycle[nv] == -1)
-                {
-                    distFromCycle[nv] = distFromCycle[cv] + 1;
-                    dfs(nv);
-                }
-                else
-                {
-                    dfs(nv);
-                }
+                distFromCycle[nv] = distFromCycle[cv] + 1;
+                q.push(nv);
             }
         }
-    };
-
-    int ci = find(distFromCycle.begin(), distFromCycle.end(), 0) -
-             distFromCycle.begin();
-
-    dfs(ci);
+    }
 
     for (int i = 1; i <= N; i++)
     {
@@ -117,3 +92,4 @@ int main(int argc, char const *argv[])
     // inputFileStream.close();
     return 0;
 }
+

@@ -1,12 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
-const int NMX = 2000;
 int N, C;
 int M;
-// adj[i][j] : i마을에서 j마을로 보내는 택배 개수
-int adj[NMX + 1][NMX + 1];
-// sum[i] : i 앞 마을들에서 i 마을로 보내는 택배 개수 총합
-int sum[NMX + 1];
+
+struct Req
+{
+    int u, v, w;
+};
 
 int main(int argc, char const *argv[])
 {
@@ -20,81 +20,43 @@ int main(int argc, char const *argv[])
     // ifstream inputFileStream("input.txt");
 
     /*
-
+        더 빠른 지점에 도달하는 택배부터 우선적으로 싣기
      */
 
     cin >> N >> C;
     cin >> M;
+    vector<Req> reqs;
+    // remains[i] : i 마을 -> i + 1 마을 로 갈때 트럭의 빈자리
+    vector<int> remains(N + 1, C);
 
     for (int i = 0; i < M; i++)
     {
-        int u, v, c;
-        cin >> u >> v >> c;
-        adj[u][v] = c;
+        Req req;
+        cin >> req.u >> req.v >> req.w;
+        reqs.push_back(req);
     }
 
-    for (int i = 1; i <= N; i++)
-    {
-        for (int j = 1; j < i; j++)
-            sum[i] += adj[j][i];
-    }
-
-    // truck[i] : 트럭에 실은 i마을로 보낼 택배 개수
-    vector<int> truck(N + 1);
-    // 트럭에 남은 자리
-    int cap = C;
-
-    /*
-            1. 2. 3. 4. 5. 6
-        1.     30 0  0  0. 40
-        2.        0  0  70 0
-        3.           40 0. 0
-        4.              0. 0
-        5                  60
-        6
-
-        1.     30 0  0  0. 0
-        2.     0  0  0  20 0
-        3.     0  0  40 20 0
-        4.     0  0  0  20 0
-        5                  60
-        6
-
-    */
+    sort(reqs.begin(), reqs.end(), [](const Req &a, const Req &b)
+         { return a.v == b.v ? a.u < b.u : a.v < b.v; });
 
     int answer = 0;
-    for (int town = 1; town <= N; town++)
+    // u -> v로 가는 동안 방해되지 않을 정도만 적재
+    for (auto [u, v, w] : reqs)
     {
-
-        cap += truck[town];
-        answer += truck[town];
-        // cout << truck[town] << ' ';
-        truck[town] = 0;
-
-        for (int dest = town + 1; dest <= N; dest++)
+        int can = w;
+        for (int i = u; i < v; i++)
         {
-            // dest 사이 town에서 적재할때 방해되지 않는 선에서만 적재하기
-            // town -> dest로 보내는 적재량
-            int mxSum = 0;
-            for (int i = town + 1; i < dest; i++)
-                mxSum = max(mxSum, sum[i]);
-
-            int num = max(min(adj[town][dest], C - mxSum), 0);
-            if (num >= cap)
-            {
-                truck[dest] += cap;
-                cap = 0;
-                break;
-            }
-            else
-            {
-                truck[dest] += num;
-                cap -= num;
-            }
+            can = min(can, remains[i]);
         }
+
+        for (int i = u; i < v; i++)
+        {
+            remains[i] -= can;
+        }
+
+        answer += can;
     }
 
-    // cout << '\n';
     cout << answer << '\n';
 
     // inputFileStream.close();

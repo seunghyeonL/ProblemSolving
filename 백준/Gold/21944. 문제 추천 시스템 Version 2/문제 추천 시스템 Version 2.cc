@@ -1,21 +1,40 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using P = pair<int, int>;
+const int NMX = 100000;
+const int LGMX = 100;
 int N, M;
-unordered_map<int, set<P>> m1; // 분류 -> 난이도, 문제번호
-map<int, set<int>> m2;         // 난이도 -> 문제번호
-unordered_map<int, P> um;      // 문제번호: 분류, 난이도
+pair<int, int> probList[NMX + 1]; // 분류, 난이도
+map<int, set<int>> lset; // 난이도: 문제번호들
+set<pair<int, int>> glset[LGMX + 1]; // 난이도, 문제번호
+
+void add(int p, int l, int g)
+{
+    probList[p] = {l, g};
+    lset[l].insert(p);
+    glset[g].emplace(l, p);
+}
+
+void solved(int p)
+{
+    auto [l, g] = probList[p];
+    lset[l].erase(p);
+
+    if (lset[l].empty())
+        lset.erase(l);
+
+    glset[g].erase({l, p});
+}
 
 void recommend1(int g, int x)
 {
     if (x == 1)
     {
-        cout << prev(m1[g].end())->second << '\n';
+        cout << prev(glset[g].end())->second << '\n';
     }
     else
     {
-        cout << m1[g].begin()->second << '\n';
+        cout << glset[g].begin()->second << '\n';
     }
 }
 
@@ -23,76 +42,43 @@ void recommend2(int x)
 {
     if (x == 1)
     {
-        set<int> hardSet = prev(m2.end())->second;
+        const set<int> &hardSet = prev(lset.end())->second;
         cout << *prev(hardSet.end()) << '\n';
     }
     else
     {
-        set<int> easySet = m2.begin()->second;
+        const set<int> &easySet = lset.begin()->second;
         cout << *easySet.begin() << '\n';
     }
 }
 
-void recommend3(int x, int d)
+void recommend3(int x, int l)
 {
-    auto it = m2.lower_bound(d);
-
+    auto it = lset.lower_bound(l);
     if (x == 1)
     {
-        if (it == m2.end())
+        if (it != lset.end())
+        {
+            const set<int> &targetSet = it->second;
+            cout << *targetSet.begin() << '\n';
+        }
+        else
         {
             cout << -1 << '\n';
-            return;
         }
-
-        set<int> targetSet = it->second;
-        if (targetSet.empty())
-        {
-            cout << -1 << '\n';
-            return;
-        }
-
-        cout << *targetSet.begin() << '\n';
     }
     else
     {
-        if (it == m2.begin())
+        if (it != lset.begin())
+        {
+            const set<int> &targetSet = prev(it)->second;
+            cout << *prev(targetSet.end()) << '\n';
+        }
+        else
         {
             cout << -1 << '\n';
-            return;
         }
-
-        set<int> targetSet = prev(it)->second;
-        if (targetSet.empty())
-        {
-            cout << -1 << '\n';
-            return;
-        }
-
-        cout << *prev(targetSet.end()) << '\n';
     }
-}
-
-void add(int p, int d, int g)
-{
-    m1[g].insert({d, p});
-    m2[d].insert(p);
-    um.insert({p, {g, d}});
-}
-
-void solved(int p)
-{
-    auto [g, d] = um[p];
-
-    um.erase(p);
-
-    m1[g].erase({d, p});
-    if (m1[g].empty())
-        m1.erase(g);
-
-    m2[d].erase(p);
-    if (m2[d].empty())
-        m2.erase(d);
 }
 
 int main(int argc, char const *argv[])
@@ -105,21 +91,16 @@ int main(int argc, char const *argv[])
     cout.tie(nullptr);
 
     // ifstream inputFileStream("input.txt");
-
-    /*
-     */
-
     cin >> N;
     for (int i = 0; i < N; i++)
     {
-        int p, d, g;
-        cin >> p >> d >> g;
+        int p, l, g;
+        cin >> p >> l >> g;
 
-        add(p, d, g);
+        add(p, l, g);
     }
 
     cin >> M;
-
     for (int i = 0; i < M; i++)
     {
         string s;
@@ -139,15 +120,15 @@ int main(int argc, char const *argv[])
         }
         else if (s == "recommend3")
         {
-            int x, d;
-            cin >> x >> d;
-            recommend3(x, d);
+            int x, l;
+            cin >> x >> l;
+            recommend3(x, l);
         }
         else if (s == "add")
         {
-            int p, d, g;
-            cin >> p >> d >> g;
-            add(p, d, g);
+            int p, l, g;
+            cin >> p >> l >> g;
+            add(p, l, g);
         }
         else if (s == "solved")
         {

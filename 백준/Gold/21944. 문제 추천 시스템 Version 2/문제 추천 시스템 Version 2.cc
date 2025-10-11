@@ -1,40 +1,58 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+struct lpData
+{
+    int l, p;
+
+    bool operator<(const lpData &oper) const
+    {
+        return l == oper.l ? p < oper.p : l < oper.l;
+    }
+};
+
+struct glpData
+{
+    int g, l, p;
+
+    bool operator<(const glpData &oper) const
+    {
+        return g == oper.g ? (l == oper.l ? p < oper.p : l < oper.l)
+                           : g < oper.g;
+    }
+};
+
 const int NMX = 100000;
 const int LGMX = 100;
 int N, M;
 pair<int, int> probList[NMX + 1]; // 분류, 난이도
-map<int, set<int>> lset; // 난이도: 문제번호들
-set<pair<int, int>> glset[LGMX + 1]; // 난이도, 문제번호
+set<lpData> lpset;                // 난이도, 문제번호
+set<glpData> glpset;              // 분류, 난이도, 문제번호
 
 void add(int p, int l, int g)
 {
     probList[p] = {l, g};
-    lset[l].insert(p);
-    glset[g].emplace(l, p);
+    lpset.insert({l, p});
+    glpset.insert({g, l, p});
 }
 
 void solved(int p)
 {
     auto [l, g] = probList[p];
-    lset[l].erase(p);
-
-    if (lset[l].empty())
-        lset.erase(l);
-
-    glset[g].erase({l, p});
+    lpset.erase({l, p});
+    glpset.erase({g, l, p});
 }
 
 void recommend1(int g, int x)
 {
     if (x == 1)
     {
-        cout << prev(glset[g].end())->second << '\n';
+        cout << prev(glpset.upper_bound({g, LGMX, NMX}))->p << '\n';
+        //  ({g, })->second << '\n';
     }
     else
     {
-        cout << glset[g].begin()->second << '\n';
+        cout << glpset.lower_bound({g, 0, 0})->p << '\n';
     }
 }
 
@@ -42,25 +60,22 @@ void recommend2(int x)
 {
     if (x == 1)
     {
-        const set<int> &hardSet = prev(lset.end())->second;
-        cout << *prev(hardSet.end()) << '\n';
+        cout << prev(lpset.end())->p << '\n';
     }
     else
     {
-        const set<int> &easySet = lset.begin()->second;
-        cout << *easySet.begin() << '\n';
+        cout << lpset.begin()->p << '\n';
     }
 }
 
 void recommend3(int x, int l)
 {
-    auto it = lset.lower_bound(l);
+    auto it = lpset.lower_bound({l, 0});
     if (x == 1)
     {
-        if (it != lset.end())
+        if (it != lpset.end())
         {
-            const set<int> &targetSet = it->second;
-            cout << *targetSet.begin() << '\n';
+            cout << it->p << '\n';
         }
         else
         {
@@ -69,10 +84,9 @@ void recommend3(int x, int l)
     }
     else
     {
-        if (it != lset.begin())
+        if (it != lpset.begin())
         {
-            const set<int> &targetSet = prev(it)->second;
-            cout << *prev(targetSet.end()) << '\n';
+            cout << prev(it)->p << '\n';
         }
         else
         {

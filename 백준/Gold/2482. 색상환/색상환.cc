@@ -5,23 +5,17 @@ const int MOD = 1000000003;
 const int NMX = 1000;
 int N, K;
 
-// j : idx
-// k : 선택한 색상 수
-// i : j번째 색을 골랐는지 여부
-// dp[i][k][j] : i, k상태로 1 ~ j번째 색 범위에서 고르는 경우의 수
-int dp[2][NMX + 1][NMX + 1];
+// dp[i][k] : i개의 수에서 인접하지 않고 j개를 고르는 경우의 수
+int dp[NMX + 1][NMX + 1];
 
-void reset_dp()
+// dp[i][k] = dp[i - 1][k] + dp[i - 2][k - 1];
+
+void init_dp()
 {
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i <= N; i++)
     {
-        for (int k = 0; k <= K; k++)
-        {
-            for (int j = 1; j <= N; j++)
-            {
-                dp[i][k][j] = 0;
-            }
-        }
+        dp[i][1] = i;
+        dp[i][0] = 1;
     }
 }
 
@@ -41,53 +35,17 @@ int main(int argc, char const *argv[])
 
     cin >> N >> K;
 
-    /*
-        dp[0][k][i] = dp[0][k][i - 1] + dp[1][k][i - 1];
-        dp[1][k][i] = dp[0][k - 1][i - 1];
-    */
-
-    int ans = 0;
-    // 첫번째 색을 고르는 경우
-    reset_dp();
-    dp[1][1][1] = 1;
-
+    init_dp();
     for (int i = 2; i <= N; i++)
     {
-        for (int k = 0; k <= min(i, K); k++)
+        for (int k = 2; k <= K; k++)
         {
-            if (k < i)
-                dp[0][k][i] = (dp[0][k][i - 1] + dp[1][k][i - 1]) % MOD;
-            if (k >= 1)
-                dp[1][k][i] = dp[0][k - 1][i - 1];
+            dp[i][k] = (dp[i - 1][k] + dp[i - 2][k - 1]) % MOD;
         }
     }
 
-    ans += dp[0][K][N];
-    ans %= MOD;
-
-    // 첫번째 색을 고르지 않는 경우
-    reset_dp();
-    dp[0][0][1] = 1;
-
-    for (int i = 2; i <= N; i++)
-    {
-        for (int k = 0; k <= min(i, K); k++)
-        {
-            if (k < i)
-                dp[0][k][i] = (dp[0][k][i - 1] + dp[1][k][i - 1]) % MOD;
-            if (k >= 1)
-                dp[1][k][i] = dp[0][k - 1][i - 1];
-        }
-    }
-
-    // 첫 번째 색을 고르지 않았으니 마지막 색을 골라도 된다.
-    // (물론 고르지 않아도 된다.)
-    ans += dp[0][K][N];
-    ans %= MOD;
-    ans += dp[1][K][N];
-    ans %= MOD;
-
-    cout << ans;
+    // 첫 요소를 선택하는 경우 + 선택하지 않는 경우
+    cout << (dp[N - 3][K - 1] + dp[N - 1][K]) % MOD;
 
     // inputFileStream.close();
     return 0;

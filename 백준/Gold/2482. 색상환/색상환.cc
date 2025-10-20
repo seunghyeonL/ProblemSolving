@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
     init_dp();
     for (int i = 2; i <= N; i++)
     {
-        for (int k = 2; k <= K; k++)
+        for (int k = 2; k <= min(K, (i + 1) / 2); k++)
         {
             dp[i][k] = (dp[i - 1][k] + dp[i - 2][k - 1]) % MOD;
         }

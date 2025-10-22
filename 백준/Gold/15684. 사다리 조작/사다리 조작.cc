@@ -10,34 +10,21 @@ vector<pair<int, int>> row_pos;
 
 bool is_correct()
 {
-    vector<int> pos(N + 1);
-    for (int i = 1; i <= N; i++)
+    for (int j = 1; j < N; j++)
     {
-        pos[i] = i;
-    }
-
-    for (int i = 1; i <= H; i++)
-    {
-        for (int j = 1; j < N; j++)
+        int cur = j;
+        for (int i = 1; i <= H; i++)
         {
-            if (used[i][j])
-            {
-                swap(pos[j], pos[j + 1]);
-            }
+            if (used[i][cur])
+                cur++;
+            else if (used[i][cur - 1])
+                cur--;
         }
+        if (cur != j)
+            return false;
     }
 
-    bool ret = true;
-    for (int i = 1; i <= N; i++)
-    {
-        if (pos[i] != i)
-        {
-            ret = false;
-            break;
-        }
-    }
-
-    return ret;
+    return true;
 }
 
 int main(int argc, char const *argv[])
@@ -82,14 +69,14 @@ int main(int argc, char const *argv[])
     int size = row_pos.size();
     int ans = 4;
 
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < size && ans > 1; i++)
     {
         auto [ix, iy] = row_pos[i];
         used[ix][iy] = true;
         if (is_correct())
             ans = min(ans, 1);
 
-        for (int j = i + 1; j < size; j++)
+        for (int j = i + 1; j < size && ans > 2; j++)
         {
             auto [jx, jy] = row_pos[j];
             if (used[jx][jy - 1] || used[jx][jy] || used[jx][jy + 1])
@@ -99,7 +86,7 @@ int main(int argc, char const *argv[])
             if (is_correct())
                 ans = min(ans, 2);
 
-            for (int k = j + 1; k < size; k++)
+            for (int k = j + 1; k < size && ans > 3; k++)
             {
                 auto [kx, ky] = row_pos[k];
                 if (used[kx][ky - 1] || used[kx][ky] || used[kx][ky + 1])

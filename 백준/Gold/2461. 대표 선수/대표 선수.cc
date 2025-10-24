@@ -30,19 +30,22 @@ int main(int argc, char const *argv[])
 
     sort(v1.begin(), v1.end());
 
-    unordered_map<int, int> um;
+    vector<int> coverArr(N);
+    int coverCnt{};
 
     int mn = 1e9 + 1;
     // 슬라이딩 윈도우로 um.size()가 N이 될때마다 최소 체크해주기
     for (int l = 0, r = 0; l < N * M; l++)
     {
-
-        while (r < N * M && um.size() < N)
+        while (r < N * M && coverCnt < N)
         {
-            um[v1[r++].second]++;
+            if (coverArr[v1[r++].second]++ == 0)
+            {
+                coverCnt++;
+            }
         }
 
-        if (um.size() == N)
+        if (coverCnt == N)
         {
             mn = min(mn, v1[r - 1].first - v1[l].first);
         }
@@ -52,9 +55,9 @@ int main(int argc, char const *argv[])
             break;
         }
 
-        if (--um[v1[l].second] == 0)
+        if (--coverArr[v1[l].second] == 0)
         {
-            um.erase(v1[l].second);
+            coverCnt--;
         }
     }
 

@@ -20,12 +20,13 @@ char i2c(int i)
 
 void reset()
 {
-    for (int i = 0; i <= LMT; i++)
+    for (int i = 0; i < node_num; i++)
         fill(trie[i], trie[i] + 26, 0);
 
+    fill(is_end, is_end + node_num + 1, false);
+    fill(W, W + node_num + 1, 0);
+
     node_num = 0;
-    fill(is_end, is_end + LMT + 1, false);
-    fill(W, W + LMT + 1, 0);
 }
 
 void insert(const string &str)
@@ -96,8 +97,6 @@ int main(int argc, char const *argv[])
 
     while (cin >> N)
     {
-        reset();
-
         vector<string> arr;
 
         for (int i = 0; i < N; i++)
@@ -122,6 +121,8 @@ int main(int argc, char const *argv[])
         cout << fixed;
         cout.precision(2);
         cout << ans << '\n';
+
+        reset();
     }
 
     // inputFileStream.close();

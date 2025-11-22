@@ -20,7 +20,7 @@ char i2c(int i)
 
 void reset()
 {
-    for (int i = 0; i < node_num; i++)
+    for (int i = 0; i <= node_num; i++)
         fill(trie[i], trie[i] + 26, 0);
 
     fill(is_end, is_end + node_num + 1, false);

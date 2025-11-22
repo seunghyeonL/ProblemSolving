@@ -1,10 +1,15 @@
 #include <bits/stdc++.h>
-
 using namespace std;
+
+const int NMX = 300000;
+int N, K;
+pair<int, int> J[NMX]; // 무게, 가치
+int C[NMX];
 
 int main(int argc, char const *argv[])
 {
     // #include <bits/stdc++.h>
+    // using namespace std;
 
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -13,46 +18,48 @@ int main(int argc, char const *argv[])
     // ifstream inputFileStream("input.txt");
 
     /*
-        그리디
-        제일 가치가 높은거 부터 넣을수 있는 제일 작은 가방에 채우기
-    */
+        가장 높은 가치의 보석부터 가능한 가장 작은 가방에 넣기
+     */
 
-    using ll = long long;
-    using P = pair<ll, ll>;
-
-    int N, K;
     cin >> N >> K;
-
-    priority_queue<P> pq;
     for (int i = 0; i < N; i++)
     {
         int w, v;
         cin >> w >> v;
-        pq.emplace(v, w);
+
+        J[i] = {w, v};
     }
 
-    multiset<int> s;
+    sort(J, J + N);
+
     for (int i = 0; i < K; i++)
     {
-        int w;
-        cin >> w;
-        s.insert(w);
+        cin >> C[i];
     }
 
-    ll res = 0;
-    while (!pq.empty() && !s.empty())
-    {
-        auto [v, w] = pq.top();
-        pq.pop();
+    sort(C, C + K);
 
-        if (auto it = s.lower_bound(w); it != s.end())
+    priority_queue<int> pq; // 가격
+
+    long long ans = 0;
+    int idx_J = 0;
+
+    for (int i = 0; i < K; i++)
+    {
+        int c = C[i];
+
+        while (idx_J < N && J[idx_J].first <= c)
+            pq.push(J[idx_J++].second);
+
+        if (!pq.empty())
         {
-            res += v;
-            s.erase(it);
+            ans += pq.top();
+            pq.pop();
         }
     }
 
-    cout << res << '\n';
+    cout << ans;
+
     // inputFileStream.close();
     return 0;
 }

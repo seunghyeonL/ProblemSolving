@@ -6,7 +6,7 @@ const int MMX = 1000;
 int N, M;
 int arr[NMX];
 int P[NMX + 1];
-long long cnt[MMX];
+int cnt[MMX];
 
 int main(int argc, char const *argv[])
 {
@@ -48,9 +48,9 @@ int main(int argc, char const *argv[])
     long long ans = 0;
     for (int i = 0; i < M; i++)
     {
-        long long n = cnt[i];
+        int n = cnt[i];
 
-        ans += n * (n - 1) / 2;
+        ans += (long long)n * (n - 1) / 2;
     }
 
     cout << ans;

@@ -5,9 +5,9 @@ int board[9][9];
 vector<pair<int, int>> blanks;
 int sz;
 
-set<int> unused_row[9];
-set<int> unused_col[9];
-set<int> unused_box[9];
+bool used_row[9][10];
+bool used_col[9][10];
+bool used_box[9][10];
 
 int get_box_idx(int x, int y)
 {
@@ -26,23 +26,23 @@ void rec(int idx_blank, bool &found)
 
     for (int i = 1; i <= 9; i++)
     {
-        if (!unused_row[cx].count(i) || !unused_col[cy].count(i) ||
-            !unused_box[get_box_idx(cx, cy)].count(i))
+        if (used_row[cx][i] || used_col[cy][i] ||
+            used_box[get_box_idx(cx, cy)][i])
             continue;
 
         board[cx][cy] = i;
-        unused_row[cx].erase(i);
-        unused_col[cy].erase(i);
-        unused_box[get_box_idx(cx, cy)].erase(i);
+        used_row[cx][i] = true;
+        used_col[cy][i] = true;
+        used_box[get_box_idx(cx, cy)][i] = true;
 
         rec(idx_blank + 1, found);
         if (found)
-            return;
+            break;
 
         board[cx][cy] = 0;
-        unused_row[cx].insert(i);
-        unused_col[cy].insert(i);
-        unused_box[get_box_idx(cx, cy)].insert(i);
+        used_row[cx][i] = false;
+        used_col[cy][i] = false;
+        used_box[get_box_idx(cx, cy)][i] = false;
     }
 }
 
@@ -58,13 +58,6 @@ int main(int argc, char const *argv[])
     // ifstream inputFileStream("input.txt");
 
     for (int i = 0; i < 9; i++)
-    {
-        unused_row[i].insert({1, 2, 3, 4, 5, 6, 7, 8, 9});
-        unused_col[i].insert({1, 2, 3, 4, 5, 6, 7, 8, 9});
-        unused_box[i].insert({1, 2, 3, 4, 5, 6, 7, 8, 9});
-    }
-
-    for (int i = 0; i < 9; i++)
         for (int j = 0; j < 9; j++)
         {
             int n;
@@ -77,9 +70,9 @@ int main(int argc, char const *argv[])
                 continue;
             }
 
-            unused_row[i].erase(n);
-            unused_col[j].erase(n);
-            unused_box[get_box_idx(i, j)].erase(n);
+            used_row[i][n] = true;
+            used_col[j][n] = true;
+            used_box[get_box_idx(i, j)][n] = true;
         }
 
     sz = blanks.size();

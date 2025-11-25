@@ -37,7 +37,7 @@ void rec(int idx_blank, bool &found)
 
         rec(idx_blank + 1, found);
         if (found)
-            break;
+            return;
 
         board[cx][cy] = 0;
         unused_row[cx].insert(i);

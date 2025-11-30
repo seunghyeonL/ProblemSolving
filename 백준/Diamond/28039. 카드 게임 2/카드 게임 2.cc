@@ -48,7 +48,7 @@ void solve()
                 arr.pop_back();
                 arr.pop_back();
                 arr.pop_back();
-                arr.push_back((long long)((__int128)a - b + c));
+                arr.push_back(a - b + c);
             }
             else
                 break;

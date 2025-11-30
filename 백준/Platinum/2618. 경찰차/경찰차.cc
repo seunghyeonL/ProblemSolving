@@ -11,7 +11,7 @@ pair<int, int> arr[WMX + 2];
 // memo[car1_pos_i][car2_pos_i] == dist
 int memo[WMX + 2][WMX + 2];
 int car_num[WMX + 2][WMX + 2];
-tuple<int, int> nxt[WMX + 2][WMX + 2];
+pair<int, int> nxt[WMX + 2][WMX + 2];
 
 int get_dist(int c1, int c2)
 {

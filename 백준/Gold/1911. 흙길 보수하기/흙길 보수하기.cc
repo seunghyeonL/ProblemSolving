@@ -45,15 +45,9 @@ int main(int argc, char const *argv[])
         }
         else
         {
-            // nx == cx mod L
-            // x + d == cx mod L
-            // d == cx - x mod L
-            int d = (cx - x) % L;
-            if (d < 0)
-                d += L;
-
-            ans += (x + d - cx) / L;
-            cx = x + d;
+            int n = (x - cx + L - 1) / L;
+            ans += n;
+            cx += L * n;
         }
     }
 

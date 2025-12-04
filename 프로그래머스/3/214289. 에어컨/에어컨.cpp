@@ -14,9 +14,6 @@ int solution(int temperature, int t1, int t2, int a, int b, vector<int> onboard)
     t2 += 10;
     
     int sz = onboard.size();
-    int last_idx = sz - 1;
-    for (int i = sz - 1 ; i >= 0 ; i--)
-        if (onboard[i]) { last_idx = i; break;}
     
     for (int i = 0 ; i < sz ; i++)
     {
@@ -45,9 +42,9 @@ int solution(int temperature, int t1, int t2, int a, int b, vector<int> onboard)
         }
     }
     
-    for (int t = t1 ; t <= t2 ; t++)
+    for (int t = 0 ; t <= TMX ; t++)
     {
-        answer = min(answer, dp[last_idx][t]);
+        answer = min(answer, dp[sz - 1][t]);
     }
     
     return answer;

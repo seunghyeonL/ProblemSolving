@@ -1,98 +1,97 @@
-#include <string>
-#include <vector>
-#include <queue>
-#include <tuple>
-#include <functional>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int solution(vector<string> maps)
+int N, M;
+int dist[100][100];
+
+void reset_dist()
 {
-    using Pos = pair<int, int>;
+    for (int i = 0 ; i < N ; i++)
+        for (int j = 0 ; j < M ; j++)
+            dist[i][j] = -1;
+}
 
-    int answer = 0;
+bool is_valid(int x, int y)
+{
+    return x >= 0 && x < N && y >= 0 && y < M;
+}
 
-    int N = maps.size();
-    int M = maps[0].size();
+vector<pair<int, int>> moves
+{
+    {0, 1},
+    {0, -1},
+    {1, 0},
+    {-1, 0},
+};
 
-    Pos startPoint, leverPoint, endPoint;
-
-    for (int i = 0; i < N; i++)
+void bfs(int sx, int sy, int ex, int ey, const vector<string>& maps)
+{
+    reset_dist();
+    
+    queue<pair<int, int>> q;
+    dist[sx][sy] = 0;
+    q.emplace(sx, sy);
+    
+    while (!q.empty())
     {
-        for (int j = 0; j < M; j++)
+        auto [cx, cy] = q.front();
+        q.pop();
+        
+        if (cx == ex && cy == ey) break;
+        
+        for (auto [dx, dy] : moves)
+        {
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (is_valid(nx, ny) && maps[nx][ny] != 'X' && dist[nx][ny] == -1)
+            {
+                dist[nx][ny] = dist[cx][cy] + 1;
+                q.emplace(nx, ny);
+            }
+        }
+    }
+}
+
+int solution(vector<string> maps) {
+    N = maps.size();
+    M = maps[0].size();
+    
+    int sx, sy, lx, ly, ex, ey;
+    
+    for (int i = 0 ; i < N ; i++)
+        for (int j = 0 ; j < M; j++)
         {
             if (maps[i][j] == 'S')
             {
-                startPoint = {i, j};
+                sx = i;
+                sy = j;
             }
             else if (maps[i][j] == 'L')
             {
-                leverPoint = {i, j};
+                lx = i;
+                ly = j;
             }
             else if (maps[i][j] == 'E')
             {
-                endPoint = {i, j};
+                ex = i;
+                ey = j;
             }
         }
-    }
-
-    function<int(Pos, Pos)> bfs = [&](Pos s, Pos e) -> int
-    {
-        vector<Pos> directions{{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-        vector<vector<bool>> visited(N, vector<bool>(M, false));
-
-        function<bool(Pos)> isValid = [&](Pos p) -> bool
-        {
-            auto [x, y] = p;
-            return x >= 0 && x < N && y >= 0 && y < M && maps[x][y] != 'X' &&
-                   !visited[x][y];
-        };
-
-        queue<tuple<int, int, int>> q;
-        q.push({s.first, s.second, 0});
-        visited[s.first][s.second] = true;
-
-        while (!q.empty())
-        {
-            auto [curX, curY, dist] = q.front();
-            q.pop();
-
-            for (auto [diffX, diffY] : directions)
-            {
-                int nextX = curX + diffX;
-                int nextY = curY + diffY;
-
-                if (nextX == e.first && nextY == e.second)
-                {
-                    return dist + 1;
-                }
-
-                if (!isValid({nextX, nextY}))
-                {
-                    continue;
-                }
-
-                q.push({nextX, nextY, dist + 1});
-                visited[nextX][nextY] = true;
-            }
-        }
+    
+    int ans = 0;
+    bfs(sx, sy, lx, ly, maps);
+    if (dist[lx][ly] < 0)
         return -1;
-    };
-
-    int leverDist = bfs(startPoint, leverPoint);
-    if (leverDist == -1)
-    {
+    
+    ans += dist[lx][ly];
+    
+    bfs(lx, ly, ex, ey, maps);
+    if (dist[ex][ey] < 0)
         return -1;
-    }
-
-    answer += leverDist;
-
-    int endDist = bfs(leverPoint, endPoint);
-    if (endDist == -1)
-    {
-        return -1;
-    }
-
-    answer += endDist;
-    return answer;
+    
+    ans += dist[ex][ey];
+    
+    return ans;
+   
 }

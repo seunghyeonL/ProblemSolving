@@ -1,75 +1,71 @@
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <functional>
-#include <unordered_set>
-#include <queue>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<int> solution(int n, vector<vector<int>> paths, vector<int> gates, vector<int> summits)
+// 다익스트라로 출발점에서 산봉우리마다 intensity 체크
+// 최소 intensity 경로 찾기
+
+using P = pair<int, int>;
+const int INF = 1e9;
+const int NMX = 50000;
+int N;
+vector<P> adj[NMX + 1];
+int I[NMX + 1];
+
+
+vector<int> solution(int n, vector<vector<int>> paths, vector<int> gates, vector<int> summits) 
 {
-    using P = pair<int, int>; // 가중치, 노드
-
-    int INF = 1e9;
-    vector<int> answer{-1, INF};
-
-    unordered_set<int> gateSet(gates.begin(), gates.end());
-    unordered_set<int> summitSet(summits.begin(), summits.end());
-
-    vector<vector<P>> adj(n + 1);
-    for (const auto &path : paths)
+    N = n;
+    sort(summits.begin(), summits.end());
+    
+    for (const auto& path : paths)
     {
         int u = path[0];
         int v = path[1];
         int w = path[2];
-
+        
         adj[u].emplace_back(w, v);
         adj[v].emplace_back(w, u);
     }
-
-    vector<int> intensity(n + 1, INF);
-    priority_queue<P, vector<P>, greater<P>> pq;
-
-    for (int g : gates)
+    
+    fill(I, I + N + 1, INF);
+    priority_queue<P, vector<P>, greater<P>> pq; // i, v
+    
+    for (int sv : gates)
     {
-        intensity[g] = 0;
-        pq.push({0, g});
+        I[sv] = 0;
+        pq.emplace(0, sv);
     }
-
+    
     while (!pq.empty())
     {
-        auto [cw, cv] = pq.top();
+        auto [i, cv] = pq.top();
         pq.pop();
-
-        if (cw > intensity[cv])
-            continue;
-
-        if (summitSet.count(cv))
-            continue;
-
+        
+        if (i > I[cv]) continue;
+        
         for (auto [w, nv] : adj[cv])
         {
-            int nw = max(cw, w);
-
-            if (nw < intensity[nv])
+            if (I[nv] > max(w, i))
             {
-                intensity[nv] = nw;
-                pq.push({nw, nv});
+                I[nv] = max(w, i);
+                
+                if (!binary_search(summits.begin(), summits.end(), nv))
+                    pq.emplace(I[nv], nv);
             }
         }
     }
-
-    sort(summits.begin(), summits.end());
-
-    for (int s : summits)
+    
+    int mn_i = INF;
+    int mn_v = 0;
+    
+    for (int ev : summits)
     {
-        if (intensity[s] < answer[1])
+        if (mn_i > I[ev])
         {
-            answer[0] = s;
-            answer[1] = intensity[s];
+            mn_i = I[ev];
+            mn_v = ev;
         }
     }
-
-    return answer;
+    
+    return {mn_v, mn_i};
 }

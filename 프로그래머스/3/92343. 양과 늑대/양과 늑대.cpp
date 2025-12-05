@@ -1,78 +1,52 @@
-#include <string>
-#include <vector>
-#include <unordered_set>
-#include <functional>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int solution(vector<int> info, vector<vector<int>> edges)
+// 현재 방문한 노드에 따라 갈 수 있는 노드가 달라진다.
+
+const int NMX = 17;
+int N;
+vector<int> is_wolf;
+vector<int> adj[NMX];
+int memo[1 << NMX]; // memo[mask] : mask 상태부터 시작해서 새로 얻을 수 있는 최대 양 개수
+
+// mask : cv를 포함한 살펴본 노드 정보
+void dfs(int sn, int wn, int mask)
 {
-    int vsize = info.size();
+    if (memo[mask]) return;
+    memo[mask] = sn;
+    
+    bool can_wolf = (sn >= wn + 2);
 
-    auto isWolf = [&info](int v) { return info[v]; };
-
-    vector<vector<int>> adj(vsize);
-
-    for (auto edge : edges)
+    for (int cv = 0 ; cv < N ; cv++)
     {
-        int u = edge[0];
-        int v = edge[1];
+        if ((mask >> cv) & 1)
+        {
+            for (int nv : adj[cv])
+            {
+                if ((mask >> nv) & 1) continue;
 
-        adj[u].push_back(v);
-        adj[v].push_back(u);
+                if (is_wolf[nv] && !can_wolf) continue;
+
+                dfs(sn + !is_wolf[nv], wn + is_wolf[nv], mask | (1 << nv));
+            }
+        }
     }
-
-    // vector<vector<vector<int>>> visited(
-    //     vsize, vector<vector<int>>(vsize, vector<int>(vsize)));
-
-    vector<int> visited(vsize);
-    visited[0] = 1;
-    int maxSheep = 1;
-
-    // unordered_set<int> available;
-    int sheep = 1;
-    int wolf = 0;
-
-    auto canChoose = [&](int v)
-    { return isWolf(v) ? sheep - wolf - 1 > 0 : sheep + 1 - wolf > 0; };
-
-    // 이전노드, 현재노드
-    function<void(int, unordered_set<int>)> dfs =
-        [&](int cv, unordered_set<int> available)
-    {
-        maxSheep = max(maxSheep, sheep);
-
-        available.erase(cv);
-        for (int nv : adj[cv])
-        {
-            if (!visited[nv])
-                available.insert(nv);
-        }
-
-        for (int av : available)
-        {
-            if (visited[av] || !canChoose(av))
-                continue;
-
-            if (isWolf(av))
-                wolf++;
-            else
-                sheep++;
-
-            visited[av] = 1;
-            dfs(av, available);
-            visited[av] = 0;
-
-            if (isWolf(av))
-                wolf--;
-            else
-                sheep--;
-        }
-    };
-
-    dfs(0, unordered_set<int>());
-
-    return maxSheep;
 }
 
+
+int solution(vector<int> info, vector<vector<int>> edges) {
+    N = info.size();
+    is_wolf = info;
+    
+    for (const auto& edge : edges)
+    {
+        int p = edge[0];
+        int c = edge[1];
+        
+        adj[p].push_back(c);
+    }
+    
+    dfs(1, 0, 1);
+    
+    return *max_element(memo, memo + (1 << N));
+}

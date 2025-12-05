@@ -1,38 +1,40 @@
-#include <string>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int solution(int n, int s, int a, int b, vector<vector<int>> fares) {
-    const int INF = 1e8;
-    int answer = INF;
-    
-    vector<vector<int>> dist(n + 1, vector<int>(n + 1, INF));
+const int NMX = 200;
+const long long INF = 1e15;
+
+long long dist[NMX + 1][NMX + 1];
+
+int solution(int n, int s, int a, int b, vector<vector<int>> fares) 
+{    
     for (int i = 1 ; i <= n ; i++)
-    {
-         dist[i][i] = 0;
-    }
+        for (int j = 1 ; j <= n ; j++)
+            dist[i][j] = INF;
     
-    for(auto fare : fares)
+    for (const auto& fare : fares)
     {
-        int c = fare[0];
-        int d = fare[1];
-        int f = fare[2];
+        int u = fare[0];
+        int v = fare[1];
+        int w = fare[2];
         
-        dist[c][d] = f;
-        dist[d][c] = f;
+        dist[u][v] = w;
+        dist[v][u] = w;
     }
     
+    for (int i = 1 ; i <= n ; i++)
+        dist[i][i] = 0;
     
     for (int k = 1 ; k <= n ; k++)
         for (int i = 1 ; i <= n ; i++)
             for (int j = 1 ; j <= n ; j++)
                 dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
     
+    long long mn_cost = INF;
     for (int i = 1 ; i <= n ; i++)
     {
-        answer = min(answer, dist[i][s] + dist[i][a] + dist[i][b]);
+        mn_cost = min(mn_cost, dist[s][i] + dist[i][a] + dist[i][b]);
     }
     
-    return answer;
+    return mn_cost;
 }

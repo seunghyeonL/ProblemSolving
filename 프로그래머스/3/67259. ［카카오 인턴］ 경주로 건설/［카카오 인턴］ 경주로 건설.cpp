@@ -27,7 +27,7 @@ int solution(vector<vector<int>> board) {
             for (int dir = 0 ; dir < 4 ; dir++)
                 dist[i][j][dir] = INF;
     
-    priority_queue<T> pq; // d, x, y, dir
+    priority_queue<T, vector<T>, greater<T>> pq; // d, x, y, dir
     
     dist[0][0][0] = 0;
     dist[0][0][2] = 0;
@@ -39,7 +39,7 @@ int solution(vector<vector<int>> board) {
         auto [d, cx, cy, cd] = pq.top();
         pq.pop();
         
-        // if (cx == N - 1 && cy == N - 1) break;
+        if (cx == N - 1 && cy == N - 1) break;
         
         if (dist[cx][cy][cd] < d) continue;
         

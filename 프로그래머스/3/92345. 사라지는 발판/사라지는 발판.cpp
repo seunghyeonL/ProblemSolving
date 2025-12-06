@@ -1,154 +1,109 @@
-#include <string>
-#include <vector>
-#include <functional>
-
+#include <bits/stdc++.h>
 using namespace std;
+using P = pair<int, int>;
 
-int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc)
+int N, M;
+int used[5][5];
+
+P pos[2];
+
+vector<P> moves
 {
-    using P = pair<int, int>;
-    int answer = -1;
-    int N = board.size();
-    int M = board[0].size();
-    const int INF = 1e9;
+    {0, 1},
+    {0, -1},
+    {1, 0},
+    {-1, 0},
+};
 
-    /*
-    홀수턴(내턴) 일 때는 내 위치, 짝수턴(상대) 일때는 상대 위치를 처리
+bool is_valid(int x, int y)
+{
+    return x >= 0 && x < N && y >= 0 && y < M;
+}
 
-    dfs(x1, y1, x2, y2, board, is1turn, is1win) : 이 상태이후로 게임이 끝나게
-    되는 턴수
+// 내 턴에 움직일 수 있는 모든 경우에 대해 다음턴에 상대가 지는경우가 있으면 그 중 가장 끝나는 시간이 빠른 케이스로
+// 다음턴에 상대가 지는 경우가 없으면 그 중 가장 끝나는 시간이 느린 케이스로
 
-    이기는 쪽에서는 다음 위치의 dfs값이 최소인 쪽을 반환
-    지는 쪽에서는 다음 위치의 dfs값이 최대인 쪽을 반환
-
-    내가 이기는 경우, 내가 지는 경우 중 dfs 값이 더 작은 쪽이 답
+// 승리 여부, 남은 이동 횟수
+P dfs(int ct, const vector<vector<int>>& board)
+{   
+    int pn = ct % 2;
+    auto& [cx, cy] = pos[pn];
     
-    복잡해서 dfs를 두개로 나누자.
-    */
-
-    auto isValid = [&](int x, int y)
-    { return x >= 0 && x < N && y >= 0 && y < M; };
-
-    vector<P> moves{{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-
-    vector<P> loc{{aloc[0], aloc[1]}, {bloc[0], bloc[1]}};
-
-    // 내가 이기는 최소 횟수
-    // 이길수 없으면 INF이상의 값 반환
-    function<int(bool)> win1Rec = [&](bool is1turn)
+    if (used[cx][cy]) // 패배, 종료
     {
-        int cx, cy;
-
-        if (is1turn)
+        return {0, 0};
+    }
+    
+    vector<P> next_results;
+    
+    for (auto [dx, dy] : moves)
+    {
+        int nx = cx + dx;
+        int ny = cy + dy;
+        
+        if (is_valid(nx, ny) && board[nx][ny] && !used[nx][ny])
         {
-            cx = loc[0].first;
-            cy = loc[0].second;
-
-            if (board[cx][cy] == 0)
-                return INF;
+            int px = cx;
+            int py = cy;
+            
+            used[cx][cy] = true;
+            cx = nx;
+            cy = ny;
+            
+            next_results.push_back(dfs(ct + 1, board));
+            
+            cx = px;
+            cy = py;
+            used[cx][cy] = false;
         }
-        else
-        {
-            cx = loc[1].first;
-            cy = loc[1].second;
+    }
 
-            if (board[cx][cy] == 0)
-                return 0;
+    if (next_results.size() == 0) // 패배, 종료
+    {
+        return {0, 0};
+    }
+    
+    bool can_win = false;
+    for (auto [is_win, r_cnt] : next_results)
+    {
+        if (!is_win)
+        {
+            can_win = true;
+            break;   
         }
-
-        int result = is1turn ? INF : 0;
-
-        for (auto [dx, dy] : moves)
+    }
+    
+    if (can_win) // 다음 턴 상대가 지는 경우가 있음 => 이번턴 내 승리
+    {
+        int c_r_cnt = 25;
+        for (auto [is_win, r_cnt] : next_results)
         {
-            int nx = cx + dx;
-            int ny = cy + dy;
-
-            if (isValid(nx, ny) && board[nx][ny])
+            if (!is_win)
             {
-                board[cx][cy] = 0;
-
-                int nextRec{};
-                if (is1turn)
-                {
-                    loc[0] = {nx, ny};
-                    nextRec = win1Rec(!is1turn);
-                    result = min(result, 1 + nextRec);
-                    loc[0] = {cx, cy};
-                }
-                else
-                {
-                    loc[1] = {nx, ny};
-                    nextRec = win1Rec(!is1turn);
-                    result = max(result, 1 + nextRec);
-                    loc[1] = {cx, cy};
-                }
-
-                board[cx][cy] = 1;
+                c_r_cnt = min(c_r_cnt, r_cnt);
             }
         }
-
-        return result;
-    };
-
-    // 상대가 이기는 최소 횟수
-    // 이길 수 없으면 INF이상의 값 반환
-    function<int(bool)> win2Rec = [&](bool is1turn)
+        return {1, c_r_cnt + 1};
+    }
+    else // 다음 턴 상대가 지는 경우가 없음 => 이번턴 내 패배
     {
-        int cx, cy;
-
-        if (!is1turn)
+        int c_r_cnt = 0;
+        for (auto [is_win, r_cnt] : next_results)
         {
-            cx = loc[1].first;
-            cy = loc[1].second;
-
-            if (board[cx][cy] == 0)
-                return INF;
+            c_r_cnt = max(c_r_cnt, r_cnt);
         }
-        else
-        {
-            cx = loc[0].first;
-            cy = loc[0].second;
+        return {0, c_r_cnt + 1};
+    }
+}
 
-            if (board[cx][cy] == 0)
-                return 0;
-        }
-
-        int result = is1turn ? 0 : INF;
-
-        for (auto [dx, dy] : moves)
-        {
-            int nx = cx + dx;
-            int ny = cy + dy;
-
-            if (isValid(nx, ny) && board[nx][ny])
-            {
-                board[cx][cy] = 0;
-
-                int nextRec{};
-                if (!is1turn)
-                {
-                    loc[1] = {nx, ny};
-                    nextRec = win2Rec(!is1turn);
-                    result = min(result, 1 + nextRec);
-                    loc[1] = {cx, cy};
-                }
-                else
-                {
-                    loc[0] = {nx, ny};
-                    nextRec = win2Rec(!is1turn);
-                    result = max(result, 1 + nextRec);
-                    loc[0] = {cx, cy};
-                }
-
-                board[cx][cy] = 1;
-            }
-        }
-
-        return result;
-    };
-
-    int win1 = win1Rec(true);
-    int win2 = win2Rec(true);
-
-    return min(win1, win2);
+int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc) {
+    N = board.size();
+    M = board[0].size();
+    
+    pos[0].first = aloc[0];
+    pos[0].second = aloc[1];
+    pos[1].first = bloc[0];
+    pos[1].second = bloc[1];
+    
+    return dfs(0, board).second;
 }

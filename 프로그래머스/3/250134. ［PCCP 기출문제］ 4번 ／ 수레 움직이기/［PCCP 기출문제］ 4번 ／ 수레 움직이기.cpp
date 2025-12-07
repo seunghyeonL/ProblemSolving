@@ -37,32 +37,8 @@ void dfs(int color, int& ans)
     
     if (cv[color] == ev[color] && cv[color ^ 1] == ev[color ^ 1])
     {
-        // cout << color << ' ' << cx << ' ' << cy << ' ' <<
-        //     cv[color ^ 1].first << ' ' << cv[color ^ 1].second << '\n';
-        
-        // for (int i = 0 ; i < N ; i++)
-        // {
-        //     for (int j = 0 ; j < M ; j++)
-        //     {
-        //         cout << dist[color][i][j] << ' ';
-        //     }
-        //     cout << '\n';
-        // }
-        // cout << '\n';
-        // for (int i = 0 ; i < N ; i++)
-        // {
-        //     for (int j = 0 ; j < M ; j++)
-        //     {
-        //         cout << dist[color ^ 1][i][j] << ' ';
-        //     }
-        //     cout << '\n';
-        // }
-        // cout << '\n';
-
         // 반대쪽 색깔이 도착하고 미리 도착해있던 여기로 넘어옴
-        auto [ex1, ey1] = ev[color];
         auto [ex2, ey2] = ev[color ^ 1]; 
-        // ans = min(ans, max(dist[color ^ 1][ex2][ey2], dist[color][ex1][ey1]));
         ans = min(ans, dist[color ^ 1][ex2][ey2]);
         return;
     }

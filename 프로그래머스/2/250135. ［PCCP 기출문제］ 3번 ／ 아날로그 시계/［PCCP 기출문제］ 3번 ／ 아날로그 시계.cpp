@@ -50,12 +50,6 @@ int solution(int h1, int m1, int s1, int h2, int m2, int s2) {
         if (p_pos_h > p_pos_s && pos_h < pos_s) ans++;
         if (p_pos_m > p_pos_s && pos_m < pos_s) ans++;
         
-        if (false)
-        {
-            cout << "p: " << p_pos_h << ' ' << p_pos_m << ' ' << p_pos_s << '\n';
-            cout << "c: " << pos_h << ' ' << pos_m << ' ' << pos_s << '\n';
-        }
-        
         pos_h %= MOD;
         pos_m %= MOD;
         pos_s %= MOD;

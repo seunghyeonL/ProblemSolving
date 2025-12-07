@@ -1,243 +1,163 @@
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <sstream>
-#include <set>
-#include <unordered_set>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<string> split(string str)
+// 비워지지 않은 수식으로 부터 가능한 진법을 추리고
+// 가능한 진법으로 지워진 수식을 풀었을 때 답이 동일하지 않으면 ? 동일하면 그 값
+
+const int NMX = 100;
+int N;
+int max_num;
+// bool is_erased[NMX];
+
+bool is_possible[10];
+
+int pow(int a, int p)
 {
-    istringstream iss(str);
-    vector<string> result;
-
-    string s;
-    while (iss >> s)
+    int ret = 1;
+    while (p-- > 0)
     {
-        result.push_back(s);
+        ret *= a;
     }
-
-    return result;
+    return ret;
 }
 
-string join(vector<string> v)
+int n_to_10(int a, int n)
 {
-    string result;
-
-    for (string s : v)
+    int ret = 0;
+    int p = 0;
+    
+    while (a > 0)
     {
-        result += s;
-        result.push_back(' ');
+        int r = a % 10;
+        ret += r * pow(n, p++);
+        a /= 10;
     }
-    result.pop_back();
-
-    return result;
+    
+    return ret;
 }
 
-vector<string> solution(vector<string> expressions)
+string ten_to_n(int a, int n)
 {
-    vector<string> answer;
-    int size = expressions.size();
-    // Printc<set<int>> printc;
-    // Printc<unordered_set<int>> printus;
-
-    /*
-        X가 아닌 문자열부터 앞에 배치하고
-        하나씩 계산하면서 2 ~ 9진법 중 불가능한 진법을 쳐내기
-        그리고 X인 문자열에서 남은 가능한 진법들을 대입시켜본 후 다른게 있으면
-       ?로, 다 같으면 그 숫자로
-    */
-
-    stable_partition(expressions.begin(), expressions.end(),
-                     [](string s) { return s.back() != 'X'; });
-
-    // 가능한 진법 모음
-    set<int> nSet{2, 3, 4, 5, 6, 7, 8, 9};
-
-    vector<vector<string>> splitedExp(size);
-
-    // splitedExp에 쪼개서 넣기
-    for (int i = 0; i < size; i++)
+    string ret{};
+    
+    while (a > 0)
     {
-        const vector<string> &sp = splitedExp[i] = split(expressions[i]);
+        int r = a % n;
+        ret.push_back('0' + r);
+        a /= n;
+    }
+    
+    if (ret.empty()) ret.push_back('0');
+    
+    reverse(ret.begin(), ret.end());
+    return ret;
+}
 
-        for (int i = 0; i < 5; i += 2)
+vector<string> solution(vector<string> expressions) {    
+    N = expressions.size();
+    
+    // fill(is_erased, is_erased + N, false);
+    fill(is_possible, is_possible + 10, true);
+    
+    max_num = 0;
+    for (const string& str : expressions)
+    {
+        stringstream ss(str);
+            
+        string sa, sb, sc;
+        char op1, op2;
+        ss >> sa >> op1 >> sb >> op2 >> sc;
+        
+        for (const string& cs : {sa, sb, sc})
         {
-            for (char c : sp[i])
+            if (cs == "X") continue;
+            for (char ch : cs)
             {
-                // 숫자 n이 사용되면 n진법 이하의 진법으로는 표현 불가
-                if (auto it = nSet.find(c - '0'); it != nSet.end())
-                {
-                    nSet.erase(nSet.begin(), next(it));
-                }
+                int num = ch - '0';
+                max_num = max(max_num, num);
+            }
+        }
+        
+        if (sc == "X") continue;
+        
+        int a = stoi(sa);
+        int b = stoi(sb);
+        int c = stoi(sc);
+        
+        for (int n = 2 ; n <= 9 ; n++)
+        {
+            if (!is_possible[n] || n <= max_num) continue;
+            
+            if (op1 == '+')
+            {
+                if (n_to_10(a, n) + n_to_10(b, n) != n_to_10(c, n))
+                    is_possible[n] = false;
+            }
+            else
+            {
+                if (n_to_10(a, n) - n_to_10(b, n) != n_to_10(c, n))
+                    is_possible[n] = false;
             }
         }
     }
-
-    auto nstr2Decimal = [&](string str, int n)
+    
+    vector<string> ans;
+    
+    for (const string& str : expressions)
     {
-        int result = 0;
-        for (char c : str)
+        if (str.back() != 'X') 
+            continue;
+        
+        stringstream ss(str);
+            
+        int a, b;
+        char op1;
+        ss >> a >> op1 >> b;
+        
+        string x{};
+        bool ok = true;
+        
+        for (int n = 2 ; n <= 9 ; n++)
         {
-            result = n * result + (c - '0');
-        }
-
-        return result;
-    };
-
-    auto decimal2nstr = [&](int num, int n)
-    {
-        string result{};
-
-        while (num > 0)
-        {
-            result.push_back('0' + num % n);
-            num /= n;
-        }
-
-        reverse(result.begin(), result.end());
-
-        if (result.empty())
-            result.push_back('0');
-
-        return result;
-    };
-
-    auto operatePlus = [&](const string &op1, const string &op2,
-                           const string &res, int n,
-                           unordered_set<int> &removed)
-    {
-        // n진법이라 치고 계산했을때 맞는지 확인
-        if (nstr2Decimal(op1, n) + nstr2Decimal(op2, n) != nstr2Decimal(res, n))
-        {
-            removed.insert(n);
-        }
-    };
-
-    auto operateMinus = [&](const string &op1, const string &op2,
-                            const string &res, int n,
-                            unordered_set<int> &removed)
-    {
-        // n진법이라 치고 계산했을때 맞는지 확인
-        if (nstr2Decimal(op1, n) - nstr2Decimal(op2, n) != nstr2Decimal(res, n))
-        {
-            removed.insert(n);
-        }
-    };
-
-    auto operatePlusX = [&](const string &op1, const string &op2, int n,
-                            string &result) -> bool
-    {
-        // n진법이라 치고 계산했을때 결과가 result랑 같은지 확인
-        if (result.empty())
-        {
-            result =
-                decimal2nstr(nstr2Decimal(op1, n) + nstr2Decimal(op2, n), n);
-            return true;
-        }
-
-        if (result !=
-            decimal2nstr(nstr2Decimal(op1, n) + nstr2Decimal(op2, n), n))
-        {
-            return false;
-        }
-
-        return true;
-    };
-
-    auto operateMinusX = [&](const string &op1, const string &op2, int n,
-                             string &result) -> bool
-    {
-        // n진법이라 치고 계산했을때 결과가 result랑 같은지 확인
-        if (result.empty())
-        {
-            result =
-                decimal2nstr(nstr2Decimal(op1, n) - nstr2Decimal(op2, n), n);
-            return true;
-        }
-
-        if (result !=
-            decimal2nstr(nstr2Decimal(op1, n) - nstr2Decimal(op2, n), n))
-        {
-            return false;
-        }
-
-        return true;
-    };
-
-    auto operate = [&](vector<string> &splited)
-    {
-        char op = splited[1][0];
-
-        if (op == '+' && splited[4][0] != 'X')
-        {
-            unordered_set<int> removed;
-            for (int n : nSet)
+            if (!is_possible[n] || n <= max_num) continue;
+            
+            if (op1 == '+')
             {
-                operatePlus(splited[0], splited[2], splited[4], n, removed);
-            }
-
-            for (int n : removed)
-            {
-                nSet.erase(n);
-            }
-        }
-        else if (op == '+' && splited[4][0] == 'X')
-        {
-            string result{};
-
-            for (int n : nSet)
-            {
-                if (!operatePlusX(splited[0], splited[2], n, result))
+                string nx = ten_to_n(n_to_10(a, n) + n_to_10(b, n), n);
+                
+                if (x.empty()) x = nx;
+                else if (x != nx) 
                 {
-                    splited[4][0] = '?';
+                    ok = false;
                     break;
                 }
             }
-
-            if (splited[4] != "?")
-                splited[4] = result;
-
-            answer.push_back(join(splited));
-        }
-        else if (op == '-' && splited[4][0] != 'X')
-        {
-            unordered_set<int> removed;
-            for (int n : nSet)
+            else
             {
-                operateMinus(splited[0], splited[2], splited[4], n, removed);
-            }
-
-            for (int n : removed)
-            {
-                nSet.erase(n);
-            }
-        }
-        else if (op == '-' && splited[4][0] == 'X')
-        {
-            string result{};
-
-            for (int n : nSet)
-            {
-                if (!operateMinusX(splited[0], splited[2], n, result))
+                string nx = ten_to_n(n_to_10(a, n) - n_to_10(b, n), n);
+                
+                if (x.empty()) x = nx;
+                else if (x != nx) 
                 {
-                    splited[4] = "?";
+                    ok = false;
                     break;
                 }
             }
-
-            if (splited[4] != "?")
-                splited[4] = result;
-
-            answer.push_back(join(splited));
         }
-    };
-
-    for (auto splited : splitedExp)
-    {
-        operate(splited);
+        
+        ss = stringstream();
+        ss << a << ' ' << op1 << ' ' << b << " = " << (ok ? x : "?");
+        
+        ans.push_back(ss.str());
     }
-
-    return answer;
+    
+    // for (int n = 2 ; n <= 9 ; n++)
+    //     cout << is_possible[n] << ' ';
+    // cout << '\n';
+    // cout << max_num << '\n';
+    
+    // cout << ten_to_n(9, 2) << '\n';
+    // cout << ten_to_n(10, 3) << '\n';
+    
+    return ans;
 }

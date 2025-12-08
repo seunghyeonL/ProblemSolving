@@ -7,7 +7,6 @@ using namespace std;
 const int NMX = 100;
 int N;
 int max_num;
-// bool is_erased[NMX];
 
 bool is_possible[10];
 
@@ -21,16 +20,15 @@ int pow(int a, int p)
     return ret;
 }
 
-int n_to_10(int a, int n)
+int n_to_10(const string& a, int n)
 {
     int ret = 0;
-    int p = 0;
     
-    while (a > 0)
+    for (char c : a)
     {
-        int r = a % 10;
-        ret += r * pow(n, p++);
-        a /= 10;
+        int num = c - '0';
+        
+        ret = ret * n + num;
     }
     
     return ret;
@@ -56,7 +54,6 @@ string ten_to_n(int a, int n)
 vector<string> solution(vector<string> expressions) {    
     N = expressions.size();
     
-    // fill(is_erased, is_erased + N, false);
     fill(is_possible, is_possible + 10, true);
     
     max_num = 0;
@@ -80,22 +77,18 @@ vector<string> solution(vector<string> expressions) {
         
         if (sc == "X") continue;
         
-        int a = stoi(sa);
-        int b = stoi(sb);
-        int c = stoi(sc);
-        
         for (int n = 2 ; n <= 9 ; n++)
         {
             if (!is_possible[n] || n <= max_num) continue;
             
             if (op1 == '+')
             {
-                if (n_to_10(a, n) + n_to_10(b, n) != n_to_10(c, n))
+                if (n_to_10(sa, n) + n_to_10(sb, n) != n_to_10(sc, n))
                     is_possible[n] = false;
             }
             else
             {
-                if (n_to_10(a, n) - n_to_10(b, n) != n_to_10(c, n))
+                if (n_to_10(sa, n) - n_to_10(sb, n) != n_to_10(sc, n))
                     is_possible[n] = false;
             }
         }
@@ -110,9 +103,9 @@ vector<string> solution(vector<string> expressions) {
         
         stringstream ss(str);
             
-        int a, b;
+        string sa, sb;
         char op1;
-        ss >> a >> op1 >> b;
+        ss >> sa >> op1 >> sb;
         
         string x{};
         bool ok = true;
@@ -123,7 +116,7 @@ vector<string> solution(vector<string> expressions) {
             
             if (op1 == '+')
             {
-                string nx = ten_to_n(n_to_10(a, n) + n_to_10(b, n), n);
+                string nx = ten_to_n(n_to_10(sa, n) + n_to_10(sb, n), n);
                 
                 if (x.empty()) x = nx;
                 else if (x != nx) 
@@ -134,7 +127,7 @@ vector<string> solution(vector<string> expressions) {
             }
             else
             {
-                string nx = ten_to_n(n_to_10(a, n) - n_to_10(b, n), n);
+                string nx = ten_to_n(n_to_10(sa, n) - n_to_10(sb, n), n);
                 
                 if (x.empty()) x = nx;
                 else if (x != nx) 
@@ -146,18 +139,10 @@ vector<string> solution(vector<string> expressions) {
         }
         
         ss = stringstream();
-        ss << a << ' ' << op1 << ' ' << b << " = " << (ok ? x : "?");
+        ss << sa << ' ' << op1 << ' ' << sb << " = " << (ok ? x : "?");
         
         ans.push_back(ss.str());
     }
-    
-    // for (int n = 2 ; n <= 9 ; n++)
-    //     cout << is_possible[n] << ' ';
-    // cout << '\n';
-    // cout << max_num << '\n';
-    
-    // cout << ten_to_n(9, 2) << '\n';
-    // cout << ten_to_n(10, 3) << '\n';
     
     return ans;
 }

@@ -7,10 +7,10 @@ int N, M;
 // 0 : blue, 1 : red
 pair<int, int> sv[2];
 pair<int, int> ev[2];
-pair<int, int> cv[2];
+// pair<int, int> cv[2];
 
 vector<vector<int>> board;
-int dist[2][MX][MX];
+bool vis[2][MX][MX];
 
 vector<pair<int, int>> moves
 {
@@ -25,46 +25,72 @@ bool is_valid(int x, int y)
     return x >= 0 && x < N && y >= 0 && y < M;
 }
 
-void dfs(int color, int& ans)
+void dfs(pair<int, int> cv0, pair<int, int> cv1, int ct, int& ans)
 {
-    auto& [cx, cy] = cv[color]; 
-    
-    if (cv[color] == ev[color] && cv[color ^ 1] != ev[color ^ 1])
+    if (cv0 == ev[0] && cv1 == ev[1])
     {
-        dfs(color ^ 1, ans);
+        ans = min(ans, ct);
         return;
     }
     
-    if (cv[color] == ev[color] && cv[color ^ 1] == ev[color ^ 1])
-    {
-        // 반대쪽 색깔이 도착하고 미리 도착해있던 여기로 넘어옴
-        auto [ex2, ey2] = ev[color ^ 1]; 
-        ans = min(ans, dist[color ^ 1][ex2][ey2]);
-        return;
-    }
+    auto [cx0, cy0] = cv0;
+    auto [cx1, cy1] = cv1;
     
-    for (auto [dx, dy] : moves)
+    vector<pair<int, int>> nvs0;
+    vector<pair<int, int>> nvs1;
+    
+    if (cv0 != ev[0])
     {
-        int nx = cx + dx;
-        int ny = cy + dy;
-        int px = cx;
-        int py = cy;
-        
-        if (is_valid(nx, ny) && 
-            board[nx][ny] != 5 &&
-            dist[color][nx][ny] == -1 && 
-            cv[color ^ 1] != make_pair(nx, ny)
-           )
+        for (auto [dx0, dy0] : moves)
         {
-            dist[color][nx][ny] = dist[color][cx][cy] + 1;
-            cx = nx;
-            cy = ny;
+            int nx0 = cx0 + dx0;
+            int ny0 = cy0 + dy0;
+            auto nv0 = make_pair(nx0, ny0);
             
-            dfs(color ^ 1, ans);
+            if (!is_valid(nx0, ny0) || vis[0][nx0][ny0] || board[nx0][ny0] == 5)
+                continue;
             
-            dist[color][nx][ny] = -1;
-            cx = px;
-            cy = py;
+            nvs0.push_back(nv0);
+        }
+    }
+    else
+    {
+        nvs0.push_back({cx0, cy0});
+    }
+    
+    if (cv1 != ev[1])
+    {
+        for (auto [dx1, dy1] : moves)
+        {
+            int nx1 = cx1 + dx1;
+            int ny1 = cy1 + dy1;
+            auto nv1 = make_pair(nx1, ny1);
+
+            if (!is_valid(nx1, ny1) || vis[1][nx1][ny1] || board[nx1][ny1] == 5)
+                continue;
+
+            nvs1.push_back(nv1);
+        }
+    }
+    else
+    {
+        nvs1.push_back({cx1, cy1});
+    }
+    
+    for (const auto& nv0 : nvs0)
+    {
+        for (const auto& nv1 : nvs1)
+        {
+            if (nv0 == nv1) continue;
+            if (nv0 == cv1 && nv1 == cv0) continue;
+            
+            vis[0][nv0.first][nv0.second] = true;
+            vis[1][nv1.first][nv1.second] = true;
+            
+            dfs(nv0, nv1, ct + 1, ans);
+            
+            vis[0][nv0.first][nv0.second] = false;
+            vis[1][nv1.first][nv1.second] = false;
         }
     }
 }
@@ -73,7 +99,6 @@ int solution(vector<vector<int>> maze) {
     N = maze.size();
     M = maze[0].size();
     board = maze;
-    memset(dist, -1, sizeof(dist));
     
     for (int i = 0 ; i < N ; i++)
         for (int j = 0 ; j < M ; j++)
@@ -81,12 +106,12 @@ int solution(vector<vector<int>> maze) {
             if (maze[i][j] == 1)
             {
                 sv[1] = {i, j};
-                cv[1] = {i, j};
+                // cv[1] = {i, j};
             }
             else if (maze[i][j] == 2)
             {
                 sv[0] = {i, j};
-                cv[0] = {i, j};
+                // cv[0] = {i, j};
             }
             else if (maze[i][j] == 3)
             {
@@ -98,15 +123,11 @@ int solution(vector<vector<int>> maze) {
             }
         }
     
-    dist[0][cv[0].first][cv[0].second] = 0;
-    dist[1][cv[1].first][cv[1].second] = 0;
+    vis[0][sv[0].first][sv[0].second] = true;
+    vis[1][sv[1].first][sv[1].second] = true;
     
-    int ans1 = 100;
-    int ans2 = 100;
-    dfs(0, ans1);
-    dfs(1, ans2);
-    
-    int ans = min(ans1, ans2);
+    int ans = 100;
+    dfs(sv[0], sv[1], 0, ans);
     
     return (ans == 100 ? 0 : ans);
 }

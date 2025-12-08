@@ -25,6 +25,7 @@ int solution(vector<vector<int>> points, vector<vector<int>> routes) {
     M = routes[0].size();
     
     cur_route_idxs.resize(X);
+    r_pos.clear();
     
     memset(board, 0, sizeof(board));
     

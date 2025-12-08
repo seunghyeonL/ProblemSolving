@@ -45,7 +45,7 @@ int solution(vector<int> bandage, int health, vector<vector<int>> attacks) {
         et = at;
     }
     
-    int time = 0;
+    int time = 1;
     bool is_dead = false;
     while (time <= et)
     {   

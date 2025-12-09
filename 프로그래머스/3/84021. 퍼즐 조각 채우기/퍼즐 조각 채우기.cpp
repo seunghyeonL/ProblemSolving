@@ -1,155 +1,215 @@
-#include <string>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <functional>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int solution(vector<vector<int>> game_board, vector<vector<int>> table)
+const int NMX = 50;
+int N;
+
+int blanks_sz;
+int blocks_sz;
+
+vector<pair<int, int>> blanks[NMX * NMX];
+set<vector<pair<int, int>>> blocks[NMX * NMX];
+bool vis[NMX][NMX];
+bool used[NMX * NMX];
+
+vector<pair<int, int>> moves
 {
-    using P = pair<int, int>;
+    {0, 1},
+    {0, -1},
+    {1, 0},
+    {-1, 0},
+};
 
-    int answer = 0;
-    int N = table.size();
+bool is_valid(int x, int y)
+{
+    return x >= 0 && x < N && y >= 0 && y < N;
+}
 
-    vector<P> directions{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-
-    vector<vector<int>> boardVisited(N, vector<int>(N, 0));
-    vector<vector<int>> tableVisited(N, vector<int>(N, 0));
-
-    multiset<vector<P>> blocks;
-
-    auto isValid = [N](int x, int y)
+void normalize(vector<pair<int, int>>& block)
+{
+    sort(block.begin(), block.end());
+    
+    auto [fx, fy] = block[0];
+    
+    for (auto& [bx, by] : block)
     {
-        return x >= 0 && x < N && y >= 0 && y < N;
-    };
+        bx -= fx;
+        by -= fy;
+    }
+}
 
-    function<vector<P>(int, int)> makeBlock = [&](int x, int y)
+void set_blank(int sx, int sy, const vector<vector<int>>& board)
+{
+    vector<pair<int, int>> blank;
+    
+    queue<pair<int, int>> q;
+    q.emplace(sx, sy);
+    vis[sx][sy] = true;
+    
+    while (!q.empty())
     {
-        vector<P> result;
-
-        if (tableVisited[x][y] || !table[x][y])
-            return result;
-
-        tableVisited[x][y] = 1;
-        result.push_back({x, y});
-
-        for (auto [dx, dy] : directions)
+        auto [cx, cy] = q.front();
+        q.pop();
+        
+        blank.emplace_back(cx, cy);
+        
+        for (auto [dx, dy] : moves)
         {
-            int nx = x + dx;
-            int ny = y + dy;
-
-            if (isValid(nx, ny) && !tableVisited[nx][ny] && table[nx][ny])
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (is_valid(nx, ny) && !board[nx][ny] && !vis[nx][ny])
             {
-                vector<P> nblock = makeBlock(nx, ny);
-                result.insert(result.end(), nblock.begin(), nblock.end());
-            }
-        }
-
-        return result;
-    };
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            vector<P> block = makeBlock(i, j);
-            if (!block.empty())
-            {
-                sort(block.begin(), block.end());
-                auto [x0, y0] = block[0];
-
-                // 첫 부분을 0, 0으로 정규화
-                for (auto &[x, y] : block)
-                {
-                    x -= x0;
-                    y -= y0;
-                }
-                blocks.insert(block);
+                q.emplace(nx, ny);
+                vis[nx][ny] = true;
             }
         }
     }
+    
+    normalize(blank);
+    blanks[blanks_sz++] = blank;
+}
 
-    function<vector<P>(int, int)> getPlace = [&](int x, int y)
+// 반시계 90도 회전
+void rotate_90(vector<pair<int, int>>& block)
+{
+    /*
+    
+    (x') = (c, -s)(x)
+    (y') = (s,  c)(y)
+    (x') = (0, -1)(x)
+    (y') = (1,  0)(y)
+    
+    x' == -y
+    y' == x
+    
+    */
+    
+    for (auto& [bx, by] : block)
     {
-        vector<P> result;
+        swap(bx, by);
+        bx *= -1;
+    }
+}
 
-        if (boardVisited[x][y] || game_board[x][y])
-            return result;
-
-        boardVisited[x][y] = 1;
-        result.push_back({x, y});
-
-        for (auto [dx, dy] : directions)
+void set_block(int sx, int sy, const vector<vector<int>>& table)
+{
+    vector<pair<int, int>> block;
+    
+    queue<pair<int, int>> q;
+    q.emplace(sx, sy);
+    vis[sx][sy] = true;
+    
+    while (!q.empty())
+    {
+        auto [cx, cy] = q.front();
+        q.pop();
+        
+        block.emplace_back(cx, cy);
+        
+        for (auto [dx, dy] : moves)
         {
-            int nx = x + dx;
-            int ny = y + dy;
-
-            if (isValid(nx, ny) && !boardVisited[nx][ny] && !game_board[nx][ny])
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (is_valid(nx, ny) && table[nx][ny] && !vis[nx][ny])
             {
-                vector<P> nplace = getPlace(nx, ny);
-                result.insert(result.end(), nplace.begin(), nplace.end());
+                q.emplace(nx, ny);
+                vis[nx][ny] = true;
             }
         }
-
-        return result;
-    };
-
-    for (int i = 0; i < N; i++)
+    }
+    
+    normalize(block);
+    blocks[blocks_sz].insert(block);
+    
+    for (int i = 1 ; i <= 3 ; i++)
     {
-        for (int j = 0; j < N; j++)
+        rotate_90(block);
+        normalize(block);
+        blocks[blocks_sz].insert(block);
+    }
+    
+    blocks_sz++;
+}
+
+int solution(vector<vector<int>> game_board, vector<vector<int>> table) 
+{
+    N = game_board.size();
+    
+    memset(vis, false, sizeof(vis));
+    for (int i = 0 ; i < N; i++)
+        for (int j = 0 ; j < N; j++)
         {
-            vector<P> place = getPlace(i, j);
-            if (!place.empty())
+            if (!game_board[i][j] && !vis[i][j])
             {
-                sort(place.begin(), place.end());
-                auto [x0, y0] = place[0];
+                set_blank(i, j, game_board);
+            }
+        }
+    
+    
+    memset(vis, false, sizeof(vis));
+    for (int i = 0 ; i < N; i++)
+        for (int j = 0 ; j < N; j++)
+        {
+            if (table[i][j] && !vis[i][j])
+            {
+                set_block(i, j, table);
+            }
+        }
+    
+//     cout << blanks_sz << ' ' << blocks_sz << '\n';
+    
+//     for (int bi = 0 ; bi < blanks_sz ; bi++)
+//     {
 
-                // 첫 부분을 0, 0으로 정규화
-                for (auto &[x, y] : place)
+//         const auto& blank = blanks[bi];
+
+//         for (auto [x, y] : blank)
+//         {
+//             cout << '(' << x << ", " << y << ')' << ' ';
+//         }
+//         cout << '\n';
+        
+//     }
+    
+//     cout << '\n';
+    
+    
+//     for (int bi = 0 ; bi < blocks_sz ; bi++)
+//     {
+//         for (auto& block : blocks[bi])
+//         {
+//             for (auto [x, y] : block)
+//             {
+//                 cout << '(' << x << ", " << y << ')' << ' ';
+//             }
+//             cout << '\n';
+//         }    
+//     }
+    
+    int ans = 0;
+    for (int i = 0 ; i < blanks_sz ; i++)
+    {
+        const auto& blank = blanks[i];
+        
+        bool found = false;
+        for (int j = 0 ; j < blocks_sz && !found ; j++)
+        {
+            if (used[j]) continue;
+            
+            for (const auto& block : blocks[j])
+            {
+                if (blank == block)
                 {
-                    x -= x0;
-                    y -= y0;
-                }
-
-                auto it = blocks.find(place);
-                if (it != blocks.end())
-                {
-                    answer += place.size();
-                    blocks.erase(it);
-                    continue;
-                }
-
-                // 90도 회전변환 세번
-                for (int _ = 0; _ < 3; _++)
-                {
-                    for (auto &[x, y] : place)
-                    {
-                        tie(x, y) = make_pair(y, -x);
-                    }
-                    
-                    // 정렬 후 다시 정규화
-                    sort(place.begin(), place.end());
-                    auto [x0, y0] = place[0];
-                    
-                    for (auto &[x, y] : place)
-                    {
-                        x -= x0;
-                        y -= y0;
-                    }
-
-                    it = blocks.find(place);
-                    if (it != blocks.end())
-                    {
-                        answer += place.size();
-                        blocks.erase(it);
-                        break;
-                    }
+                    found = true;
+                    used[j] = true;
+                    ans += block.size();
+                    break;
                 }
             }
         }
     }
-
-    return answer;
+    
+    return ans;
 }

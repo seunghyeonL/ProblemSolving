@@ -1,66 +1,77 @@
-#include <string>
-#include <vector>
-#include <utility>
-#include <algorithm>
-#include <iostream>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-void dfs(const vector<vector<int>> &users, const vector<int> &emoticons, vector<int> &discounts, int idx, pair<int, int> &p)
+// 각 이모티콘의 할인율 경우의 수를 완전탐색 => 4^7
+// 최적 결과 보관
+
+int N;
+vector<vector<int>> U;
+vector<int> E;
+
+// idx : E idx, dcs : idx별 할인율, ans : 최대 플러스 가입, 그때 최대 판매액
+void rec(int idx, vector<int>& dcs, pair<int, int>& ans)
 {
-    if(idx == emoticons.size()) 
+    if (idx == N)
     {
-        int subscribeNum  = 0;
-        int sales = 0;
+        auto& [ans_a, ans_b] = ans;
+        int a = 0, b = 0; // 플러스 가입자 수, 총 판매액
         
-        for(auto user : users)
+        for (const auto& user : U)
         {
-            int minDiscount = user[0];
-            int minSubPrice = user[1];
-            int totalPrice = 0;
+            int u_dc = user[0]; // 구매 할인율
+            int u_plus = user[1]; // 플러스 가입 가격
+
+            int sum_price = 0;
             
-            for(int i = 0 ; i < emoticons.size() ; i++)
+            for (int i = 0 ; i < N ; i++)
             {
-                // cout << "minDiscount: " << minDiscount << " discounts" << i << " "<< discounts[i] << '\n';
-                if(discounts[i] >= minDiscount) 
-                {
-                    totalPrice += emoticons[i] * (100 - discounts[i]) / 100;
-                    
-                }
-                // cout << "totalPrice: " << totalPrice << '\n';
-            }
-            // cout << "totalPrice: " << totalPrice << '\n';
-            if(totalPrice >= minSubPrice) subscribeNum++;
-            else sales += totalPrice;
+                int price = E[i];
+                int dc = dcs[i];
             
-            // cout << "discounts: \n";
-            // cout << "subscribeNum: " << subscribeNum << " sales: " << sales << "\n";
+                if (u_dc <= dc)
+                    sum_price += price * (100 - dc) / 100;
+            }
+            
+            if (sum_price >= u_plus)
+            {
+                a++;
+            }
+            else
+            {
+                b += sum_price;
+            }
         }
         
-        // for(int el : discounts)
-        // {
-        //     cout << el << " ";    
-        // }
-        // cout << '\n';
-        pair<int, int> curP = make_pair(subscribeNum, sales);
-        if (p < curP) p = curP;
-        // cout << "p: (" << p.first << ", " << p.second << ")\n";
+        if (ans_a < a)
+        {
+            ans_a = a;
+            ans_b = b;
+        }
+        else if (ans_a == a && ans_b < b)
+        {
+            ans_b = b;
+        }
+        
         return;
     }
     
-    for(int discount = 10 ; discount <= 40 ; discount += 10)
+    for (int dc : {10, 20, 30, 40})
     {
-        discounts.push_back(discount);
-        dfs(users, emoticons, discounts, idx + 1, p);
-        discounts.pop_back();
+        dcs[idx] = dc;
+        rec(idx + 1, dcs, ans);
     }
 }
 
-vector<int> solution(vector<vector<int>> users, vector<int> emoticons) {
-    vector<int> discounts;
-    pair<int, int> p(0, 0); // 구독자수, 판매액
+vector<int> solution(vector<vector<int>> users, vector<int> emoticons) 
+{
+    N = emoticons.size();
+    U = users;
+    E = emoticons;
     
-    dfs(users, emoticons, discounts, 0, p);
+    vector<int> dcs(N);
+    pair<int, int> ans;
     
-    return {p.first, p.second};
+    rec(0, dcs, ans);
+    
+    return vector<int>{ans.first, ans.second};
 }

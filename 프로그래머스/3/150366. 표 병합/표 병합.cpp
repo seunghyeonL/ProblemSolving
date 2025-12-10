@@ -1,208 +1,159 @@
-#include <string>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<string> strSplit(string str, char seperator = ' ')
+const int N = 50;
+
+string values[N * N];
+
+int uf[N * N];
+
+int find_root(int u)
 {
-    vector<string> result;
-
-    string buffer{};
-
-    for (char chr : str)
-    {
-        if (chr == seperator)
-        {
-            result.push_back(buffer);
-            buffer.clear();
-            continue;
-        }
-
-        buffer.push_back(chr);
-    }
-
-    if (!buffer.empty())
-    {
-        result.push_back(buffer);
-    }
-
-    return result;
+    if (uf[u] < 0) return u;
+    return uf[u] = find_root(uf[u]);
 }
 
-class Table
+bool union_set(int u, int v)
 {
-private:
-    int size;
-    vector<vector<string>> data;
-    vector<vector<string *>> p;
-    vector<string> prints;
+    u = find_root(u);
+    v = find_root(v);
+    
+    if (u == v) return false;
+    
+    // v -> u
+    if (values[u].empty())
+        values[u] = values[v];    
+    
+    uf[v] = u;
+    
+    return true;
+}
 
-    // Printc<vector<vector<string>>, Printc<vector<string>>> printc;
+int get_node_num(int x, int y)
+{
+    return x * N + y;
+}
 
-public:
-    Table() : size(50), data(size, vector<string>(size)), p(size, vector<string *>(size))
+string& get_value(int x, int y)
+{
+    return values[find_root(get_node_num(x, y))];
+}
+
+void operate_update(int r, int c, const string& val)
+{
+    --r; --c;
+    string& value = get_value(r, c);
+    value = val;
+}
+
+void operate_update(const string& val1, const string& val2)
+{
+    for (int u = 0 ; u < N * N ; u++)
     {
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                p[i][j] = &data[i][j];
-            }
-        }
+        string& value = get_value(u / N, u % N);
+        if (value == val1) 
+            value = val2;
     }
+}
 
-    void update(int r, int c, string value)
+void operate_merge(int r1, int c1, int r2, int c2)
+{
+    --r1; --c1; --r2; --c2;
+    int u = get_node_num(r1, c1);
+    int v = get_node_num(r2, c2);
+    
+    union_set(u, v);
+}
+
+void operate_unmerge(int r, int c)
+{
+    --r; --c;
+    int tv = get_node_num(r, c);
+    int rtv = find_root(tv);
+    
+    string tval = get_value(r, c);
+    
+    vector<int> cluster;
+    
+    for (int u = 0 ; u < N * N ; u++)
     {
-        r -= 1;
-        c -= 1;
-
-        *p[r][c] = value;
+        if (find_root(u) == rtv) 
+            cluster.push_back(u);
     }
-
-    void update(string value1, string value2)
+    
+    for (int u : cluster)
     {
-        if (value1 == value2)
-            return;
-
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                if (*p[i][j] == value1)
-                    *p[i][j] = value2;
-            }
-        }
+        uf[u] = -1;
+        values[u] = "";
     }
+    
+    values[tv] = tval;
+}
 
-    void merge(int r1, int c1, int r2, int c2)
-    {
-        r1 -= 1;
-        c1 -= 1;
-        r2 -= 1;
-        c2 -= 1;
-
-        string *mp1 = p[r1][c1];
-        string *mp2 = p[r2][c2];
-
-        if (mp1 == mp2)
-            return;
-
-        string d = (*mp1).empty() ? *mp2 : *mp1;
-
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                if (p[i][j] == mp2)
-                {
-                    p[i][j] = mp1;
-                    data[i][j] = string{};
-                }
-            }
-        }
-
-        *mp1 = d;
-    }
-
-    void unmerge(int r, int c)
-    {
-        r -= 1;
-        c -= 1;
-
-        string *mp = p[r][c];
-        string d = *mp;
-
-        for (int i = 0; i < size; i++)
-        {
-            for (int j = 0; j < size; j++)
-            {
-                if (p[i][j] == mp)
-                {
-                    p[i][j] = &data[i][j];
-                    data[i][j] = string{};
-                }
-            }
-        }
-
-        data[r][c] = d;
-    }
-
-    void print(int r, int c)
-    {
-        r -= 1;
-        c -= 1;
-
-        if ((*p[r][c]).empty())
-            prints.push_back("EMPTY");
-        else
-            prints.push_back(*p[r][c]);
-    }
-
-    void operate(string command)
-    {
-        vector<string> cmdstr = strSplit(command);
-
-        string op = cmdstr[0];
-
-        if (op == "UPDATE")
-        {
-            if (cmdstr.size() == 4)
-            {
-                int r = stoi(cmdstr[1]);
-                int c = stoi(cmdstr[2]);
-                string value = cmdstr[3];
-
-                update(r, c, value);
-            }
-            else
-            {
-                string value1 = cmdstr[1];
-                string value2 = cmdstr[2];
-
-                update(value1, value2);
-            }
-        }
-        else if (op == "MERGE")
-        {
-            int r1 = stoi(cmdstr[1]);
-            int c1 = stoi(cmdstr[2]);
-            int r2 = stoi(cmdstr[3]);
-            int c2 = stoi(cmdstr[4]);
-
-            merge(r1, c1, r2, c2);
-        }
-        else if (op == "UNMERGE")
-        {
-            int r = stoi(cmdstr[1]);
-            int c = stoi(cmdstr[2]);
-
-            unmerge(r, c);
-        }
-        else if (op == "PRINT")
-        {
-            int r = stoi(cmdstr[1]);
-            int c = stoi(cmdstr[2]);
-
-            print(r, c);
-        }
-
-        // printc(data);
-    }
-
-    vector<string> getPrints()
-    {
-        return prints;
-    }
-};
+string operate_print(int r, int c)
+{
+    --r; --c;
+    int u = get_node_num(r, c);
+    
+    string ret = get_value(r, c);
+    
+    return (ret.empty() ? "EMPTY" : ret);
+}
 
 vector<string> solution(vector<string> commands)
 {
-    Table table;
-
-    for (const string &command : commands)
+    memset(uf, -1, sizeof(uf));
+    fill(values, values + N * N, "");
+    
+    vector<string> ans;
+    for (const auto& command : commands)
     {
-        table.operate(command);
+        stringstream ss(command);
+        
+        string t;
+        ss >> t;
+        
+        if (t == "UPDATE")
+        {
+            vector<string> opers;
+            string oper;
+            
+            while (ss >> oper)
+                opers.push_back(oper);
+            
+            if (opers.size() == 2)
+                operate_update(opers[0], opers[1]);
+            else if (opers.size() == 3)
+                operate_update(stoi(opers[0]), stoi(opers[1]), opers[2]);
+                
+        }
+        else if (t == "MERGE")
+        {
+            int r1, c1, r2, c2;
+            ss >> r1 >> c1 >> r2 >> c2;
+            operate_merge(r1, c1, r2, c2);
+        }
+        else if (t == "UNMERGE")
+        {
+            int r, c;
+            ss >> r >> c;
+            operate_unmerge(r, c);
+        }
+        else if (t == "PRINT")
+        {
+            int r, c;
+            ss >> r >> c;
+            ans.push_back(operate_print(r, c));
+        }
+        
+        // for (int i = 1 ; i <= 5 ; i++)
+        // {
+        //     for (int j = 1 ; j <= 5 ; j++)
+        //         cout << operate_print(i, j) << ' ';
+        //     cout << '\n';
+        // }
+        // cout << '\n';
     }
-
-    return table.getPrints();
+    
+    return ans;
 }

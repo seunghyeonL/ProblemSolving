@@ -8,7 +8,7 @@ int blanks_sz;
 int blocks_sz;
 
 vector<pair<int, int>> blanks[NMX * NMX];
-set<vector<pair<int, int>>> blocks[NMX * NMX];
+vector<pair<int, int>> blocks[NMX * NMX][4];
 bool vis[NMX][NMX];
 bool used[NMX * NMX];
 
@@ -121,13 +121,13 @@ void set_block(int sx, int sy, const vector<vector<int>>& table)
     }
     
     normalize(block);
-    blocks[blocks_sz].insert(block);
+    blocks[blocks_sz][0] = block;
     
     for (int i = 1 ; i <= 3 ; i++)
     {
         rotate_90(block);
         normalize(block);
-        blocks[blocks_sz].insert(block);
+        blocks[blocks_sz][i] = block;
     }
     
     blocks_sz++;
@@ -136,6 +136,12 @@ void set_block(int sx, int sy, const vector<vector<int>>& table)
 int solution(vector<vector<int>> game_board, vector<vector<int>> table) 
 {
     N = game_board.size();
+    blanks_sz = 0;
+    blocks_sz = 0;
+
+    fill(blanks, blanks + NMX * NMX, vector<pair<int,int>>());
+    fill(&blocks[0][0], &blocks[0][0] + NMX + NMX * 4, vector<pair<int,int>>());
+    memset(used, false, sizeof(used));
     
     memset(vis, false, sizeof(vis));
     for (int i = 0 ; i < N; i++)
@@ -158,36 +164,6 @@ int solution(vector<vector<int>> game_board, vector<vector<int>> table)
             }
         }
     
-//     cout << blanks_sz << ' ' << blocks_sz << '\n';
-    
-//     for (int bi = 0 ; bi < blanks_sz ; bi++)
-//     {
-
-//         const auto& blank = blanks[bi];
-
-//         for (auto [x, y] : blank)
-//         {
-//             cout << '(' << x << ", " << y << ')' << ' ';
-//         }
-//         cout << '\n';
-        
-//     }
-    
-//     cout << '\n';
-    
-    
-//     for (int bi = 0 ; bi < blocks_sz ; bi++)
-//     {
-//         for (auto& block : blocks[bi])
-//         {
-//             for (auto [x, y] : block)
-//             {
-//                 cout << '(' << x << ", " << y << ')' << ' ';
-//             }
-//             cout << '\n';
-//         }    
-//     }
-    
     int ans = 0;
     for (int i = 0 ; i < blanks_sz ; i++)
     {
@@ -198,8 +174,10 @@ int solution(vector<vector<int>> game_board, vector<vector<int>> table)
         {
             if (used[j]) continue;
             
-            for (const auto& block : blocks[j])
+            for (int r = 0 ; r < 4 ; r++)
             {
+                const auto& block = blocks[j][r];
+                    
                 if (blank == block)
                 {
                     found = true;

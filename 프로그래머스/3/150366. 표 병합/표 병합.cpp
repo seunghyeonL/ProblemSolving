@@ -29,19 +29,18 @@ bool union_set(int u, int v)
     return true;
 }
 
-int get_node_num(int x, int y)
+int get_node_num(int r, int c)
 {
-    return x * N + y;
+    return (r - 1) * N + c - 1;
 }
 
-string& get_value(int x, int y)
+string& get_value(int r, int c)
 {
-    return values[find_root(get_node_num(x, y))];
+    return values[find_root(get_node_num(r, c))];
 }
 
 void operate_update(int r, int c, const string& val)
 {
-    --r; --c;
     string& value = get_value(r, c);
     value = val;
 }
@@ -50,7 +49,7 @@ void operate_update(const string& val1, const string& val2)
 {
     for (int u = 0 ; u < N * N ; u++)
     {
-        string& value = get_value(u / N, u % N);
+        string& value = get_value(u / N + 1, u % N + 1);
         if (value == val1) 
             value = val2;
     }
@@ -58,7 +57,6 @@ void operate_update(const string& val1, const string& val2)
 
 void operate_merge(int r1, int c1, int r2, int c2)
 {
-    --r1; --c1; --r2; --c2;
     int u = get_node_num(r1, c1);
     int v = get_node_num(r2, c2);
     
@@ -67,7 +65,6 @@ void operate_merge(int r1, int c1, int r2, int c2)
 
 void operate_unmerge(int r, int c)
 {
-    --r; --c;
     int tv = get_node_num(r, c);
     int rtv = find_root(tv);
     
@@ -84,7 +81,7 @@ void operate_unmerge(int r, int c)
     for (int u : cluster)
     {
         uf[u] = -1;
-        values[u] = "";
+        values[u].clear();
     }
     
     values[tv] = tval;
@@ -92,7 +89,6 @@ void operate_unmerge(int r, int c)
 
 string operate_print(int r, int c)
 {
-    --r; --c;
     int u = get_node_num(r, c);
     
     string ret = get_value(r, c);

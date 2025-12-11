@@ -7,7 +7,6 @@ int N;
 int arr[NMX];
 
 int trie[BMX * NMX + 1][2];
-bool end_nodes[BMX * NMX + 1];
 int node_num;
 
 void insert(int n)
@@ -27,8 +26,6 @@ void insert(int n)
         trie[cv][cb] = ++node_num;
         cv = node_num;
     }
-
-    end_nodes[cv] = true;
 }
 
 // 상위 비트 가 다른 경우가 있으면 같은 경우는 탐색 x

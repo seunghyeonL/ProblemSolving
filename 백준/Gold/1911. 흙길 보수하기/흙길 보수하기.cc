@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
     sort(puddle.begin(), puddle.end());
 
     int ans = 0;
-    int cx = 0; // 덮어진 위치 오른쪽 끝
+    int cx = 0; // 덮기 시작할 위치
     for (auto [x, is_start] : puddle)
     {
         if (is_start)

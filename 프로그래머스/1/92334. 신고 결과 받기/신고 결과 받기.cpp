@@ -1,75 +1,56 @@
-#include <string>
-#include <vector>
-#include <unordered_map>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<string> strSplit(string str, char seperator = ' ') {
-    vector<string> result;
+const int NMX = 1000;
+int N;
+unordered_map<string, int> id_idx;
+vector<int> picked[NMX];
+int mail_num[NMX];
 
-    string buffer{};
-
-    for (char chr : str) {
-        if (chr == seperator) {
-            result.push_back(buffer);
-            buffer.clear();
-            continue;
-        }
-
-        buffer.push_back(chr);
-    }
-
-    if (!buffer.empty()) {
-        result.push_back(buffer);
-    }
-
-    return result;
-}
-
-vector<int> solution(vector<string> id_list, vector<string> report, int k) {
-    vector<int> answer;
-
-    struct UserData {
-        string name;
-        int shotNumber;
-    };
-
-    unordered_map<string, UserData> usersMap;
-    unordered_map<string, vector<UserData *>> rMap;
-
-    for (string name : id_list) {
-        usersMap.insert({name, {name, 0}});
-        rMap.insert({name, {}});
+vector<int> solution(vector<string> id_list, vector<string> report, int k) 
+{
+    N = id_list.size();    
+    for (int i = 0 ; i < N ; i++)
+        id_idx[id_list[i]] = i;
+    
+    memset(mail_num, 0, sizeof(mail_num));
+    
+    for (const string& str : report)
+    {
+        stringstream ss(str);
+        string s, e;
+        ss >> s >> e;
+        
+        int sv = id_idx[s];
+        int ev = id_idx[e];
+        
+        picked[ev].push_back(sv);
     }
     
-    for (string str : report) {
-        vector<string> splitedStr = strSplit(str);
-        string shooter{splitedStr[0]};
-        string target{splitedStr[1]};
-
-        UserData *targetUser = &usersMap[target];
-
-        auto targetIt =
-            find(rMap[shooter].begin(), rMap[shooter].end(), targetUser);
-
-        if (targetIt == rMap[shooter].end()) {
-            targetUser->shotNumber++;
-            rMap[shooter].push_back(targetUser);
-        }
+    for (int i = 0 ; i < N ; i++)
+    {
+        auto& v = picked[i];
+        sort(v.begin(), v.end());
+        v.erase(unique(v.begin(), v.end()), v.end());
     }
-
-    for (string id : id_list) {
-        int mailNum = 0;
-
-        for (UserData *p : rMap[id]) {
-            if (p->shotNumber >= k) {
-                mailNum++;
+    
+    for (int i = 0 ; i < N ; i++)
+    {
+        if (picked[i].size() >= k)
+        {
+            for (int el : picked[i])
+            {
+                mail_num[el]++;
             }
         }
-
-        answer.push_back(mailNum);
     }
-
+    
+    vector<int> answer;
+    
+    for (int i = 0 ; i < N ; i++)
+    {
+        answer.push_back(mail_num[i]);
+    }
+    
     return answer;
 }

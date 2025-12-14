@@ -1,105 +1,78 @@
-#include <string>
-#include <vector>
-#include <numeric>
-#include <map>
-#include <utility>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<string> strSplit(string str, char seperator = ' ')
+// 24 * 60 * 10000 = 14400000 -> int 
+
+unordered_map<int, int> um_in; // 차량번호, 입차시간
+unordered_map<int, int> um_acc; // 차량번호, 누적 주차 시간
+
+int bt, bc, pt, pc;
+
+int get_time(const string& time)
 {
-    vector<string> result;
+    int h = stoi(time.substr(0, 2));
+    int m = stoi(time.substr(3, 2));
+    
+    return h * 60 + m;
+}
 
-    string buffer{};
-
-    for (char chr : str)
+vector<int> solution(vector<int> fees, vector<string> records) {
+    um_in.clear();
+    um_acc.clear();
+    
+    bt = fees[0];
+    bc = fees[1];
+    pt = fees[2];
+    pc = fees[3];
+    
+    for (const string& record : records)
     {
-        if (chr == seperator)
+        stringstream ss(record);
+        
+        string time;
+        string cn_s;
+        string type;
+        
+        ss >> time >> cn_s >> type;
+        
+        int cn = stoi(cn_s);
+        
+        if (type == "IN")
         {
-            result.push_back(buffer);
-            buffer.clear();
-            continue;
+            um_in[cn] = get_time(time);
         }
-
-        buffer.push_back(chr);
+        if (type == "OUT")
+        {
+            um_acc[cn] += get_time(time) - um_in[cn];
+            um_in.erase(cn);
+        }
     }
 
-    if (!buffer.empty())
+    for (auto [cn, t_in] : um_in)
     {
-        result.push_back(buffer);
+        um_acc[cn] += get_time("23:59") - t_in;
     }
-
-    return result;
-}
-
-int getMinute(string hm) {
-    auto splited = strSplit(hm, ':');
-    return 60 * stoi(splited[0]) + stoi(splited[1]);
-}
-
-vector<int> solution(vector<int> fees, vector<string> records)
-{
+    
+    vector<pair<int, int>> tmp(um_acc.begin(), um_acc.end());
+    sort(tmp.begin(), tmp.end());
+    
     vector<int> answer;
-    map<string, pair<int, bool>> m;
-
-    for (string record : records)
+    for (auto& [cn, time] : tmp)
     {
-        auto splited = strSplit(record);
-        string hm = splited[0];
-        string cNum = splited[1];
-        string inOut = splited[2];
-
-        int minute = getMinute(hm);
-
-        auto it = m.find(cNum);
-        if (it == m.end())
+        int fee = bc;
+        time -= bt;
+        
+        if (time > 0)
         {
-            m.insert({cNum, {-1 * minute, false}});
+            int n = time / pt;
+            if (time % pt > 0)
+                n++;
+            
+            fee += pc * n;
         }
-        else
-        {
-            if (inOut == "IN")
-            {
-                it->second.first -= minute;
-                it->second.second = false;
-            }
-            else
-            {
-                it->second.first += minute;
-                it->second.second = true;
-            }
-        }
-        // if (cNum == "5961")
-        // {
-        //     cout << m[cNum].first << " " << m[cNum].second << endl;
-        // }
+        
+        answer.push_back(fee);
     }
-
-    for (auto [cNum, p] : m)
-    {
-        auto [minute, outFlag] = p;
-
-        if (!outFlag)
-        {
-            minute += getMinute("23:59");
-            outFlag = true;
-        }
-
-        // cout << "cNum: " << cNum << " minute: " << minute
-        //      << " outFlag: " << outFlag << '\n';
-
-        minute -= fees[0];
-        answer.push_back(fees[1]);
-        if (minute > 0)
-        {
-            answer.back() += minute / fees[2] * fees[3];
-            minute %= fees[2];
-            if (minute > 0)
-            {
-                answer.back() += fees[3];
-            }
-        }
-    }
-
+    
     return answer;
 }

@@ -1,75 +1,70 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int op_start_time;
-int op_end_time;
-int video_len_time;
+int video_len;
+int op_start;
+int op_end;
+int ct;
 
-int get_time(const string& str)
+int to_second(const string& str)
 {
-    return stoi(str.substr(0, 2)) * 60 + stoi(str.substr(3, 2));
+    int m = stoi(str.substr(0, 2));
+    int s = stoi(str.substr(3, 2));
+    
+    return m * 60 + s;
 }
 
-void operate_next(int& ct)
+void skip_opening()
 {
-    if (ct >= op_start_time && ct < op_end_time) 
-    {
-        ct = op_end_time + 10;
-        return;
-    }
-    
-    int nt = min(ct + 10, video_len_time);
-    
-    if (nt >= op_start_time && nt < op_end_time) 
-    {
-        ct = op_end_time;   
-        return;
-    }
-    
-    ct = nt;
+    if (ct >= op_start && ct <= op_end)
+        ct = op_end;
 }
 
-void operate_prev(int& ct)
+void operate_next()
 {
-    if (ct >= op_start_time && ct < op_end_time)
-    {
-        ct = op_end_time;
-        return;
-    }
-        
-    int nt = max(ct - 10, 0);
+    skip_opening();
     
-    if (nt >= op_start_time && nt < op_end_time) 
-    {
-        ct = op_end_time;   
-        return;
-    }
+    ct = min(ct + 10, video_len);
     
-    ct = nt;
+    skip_opening();
 }
 
-string solution(string video_len, string pos, string op_start, string op_end, vector<string> commands) 
+void operate_prev()
 {
-    op_start_time = get_time(op_start);
-    op_end_time = get_time(op_end);
-    video_len_time = get_time(video_len);
+    skip_opening();
     
-    int ct = get_time(pos);
+    ct = max(ct - 10, 0);
     
-    for (const auto& command : commands)
+    skip_opening();
+}
+
+string solution(string _video_len, string _pos, string _op_start, string _op_end, vector<string> commands) 
+{
+    video_len = to_second(_video_len);
+    op_start = to_second(_op_start);
+    op_end = to_second(_op_end);
+    
+    ct = to_second(_pos);
+    
+    for (const string& command : commands)
     {
-        if (command == "next") operate_next(ct);
-        else if (command == "prev") operate_prev(ct);
+        if (command == "next")
+            operate_next();
+        else
+            operate_prev();
     }
-    
-    stringstream ss;
     
     string m = to_string(ct / 60);
     string s = to_string(ct % 60);
     
-    if (m.size() == 1) ss << '0';
+    stringstream ss;
+    
+    if (m.size() == 1) 
+        ss << '0';
     ss << m << ':';
-    if (s.size() == 1) ss << '0';
+    
+    if (s.size() == 1)
+        ss << '0';
     ss << s;
     
     return ss.str();

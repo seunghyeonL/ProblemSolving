@@ -40,8 +40,9 @@ vector<int> solution(vector<vector<int>> edges, vector<int> target_) {
     N = target_.size();
     copy(target_.begin(), target_.end(), target + 1);
     
-    int remain = reduce(target + 1, target + N + 1, 0);
-    int target_num = accumulate(target + 1, target + N + 1, 0, [](int acc, int cur){ return acc + (cur > 0 ? 1 : 0); });
+    int remain = accumulate(target + 1, target + N + 1, 0);
+    int target_num = accumulate(target + 1, target + N + 1, 0, 
+                                [](int acc, int cur){ return acc + (cur > 0 ? 1 : 0); });
 
     for (const auto& edge : edges)
     {

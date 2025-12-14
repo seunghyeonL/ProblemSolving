@@ -1,24 +1,24 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 투포인터
+// 좌표압축, 투포인터(슬라이딩 윈도우)
 
 int len;
 vector<string> comp;
-
-int get_idx(const string& gem)
-{
-    return lower_bound(comp.begin(), comp.end(), gem) - comp.begin();
-}
+unordered_map<string, int> um_idx;
 
 vector<int> solution(vector<string> gems) 
 {
     len = gems.size();
     comp = gems;
+    
     sort(comp.begin(), comp.end());
     comp.erase(unique(comp.begin(), comp.end()), comp.end());
     
     int N = comp.size();
+    for (int i = 0 ; i < N ; i++)
+        um_idx[comp[i]] = i;
+    
     int n = 0;
     vector<int> use_cnt(N);
     
@@ -29,7 +29,7 @@ vector<int> solution(vector<string> gems)
     {
         while (r < len && n < N)
         {
-            int idx_r = get_idx(gems[r++]);
+            int idx_r = um_idx[gems[r++]];
             
             if (use_cnt[idx_r] == 0)
                 n++;
@@ -43,7 +43,7 @@ vector<int> solution(vector<string> gems)
             mn_len = r - l;
         }
         
-        int idx_l = get_idx(gems[l]);
+        int idx_l = um_idx[gems[l]];
         use_cnt[idx_l]--;
         if (use_cnt[idx_l] == 0)
             n--;

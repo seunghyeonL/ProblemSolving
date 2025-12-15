@@ -2,7 +2,7 @@
 using namespace std;
 
 // 간선 가중치 존재 -> 다익스트라
-// 상태 : cv, 함정방 상태(바뀌었는가 아닌가; 함정 방이 아닌 경우는 0만 사용)
+// 상태 : cv, 함정방 상태 마스크
 
 using T3 = tuple<long long, int, int>;
 
@@ -80,37 +80,27 @@ int solution(int n, int start, int end, vector<vector<int>> roads, vector<int> _
         
         for (auto [w, nv, can_move] : adj[cv])
         {   
-            if (trap_idx[nv] == -1)
-            {
-                can_move ^= active_cv;
-                
-                if (!can_move) 
-                    continue;
-                
-                if (dist[nv][mask] > d + w)
-                {
-                    dist[nv][mask] = d + w;
-                    pq.emplace(d + w, nv, mask);
-                }
-            }
-            else
+            can_move ^= active_cv;
+            
+            int active_nv = 0;
+            int n_mask = mask;
+            
+            if (trap_idx[nv] != -1)
             {
                 int ti = trap_idx[nv];
-                int active_nv = (mask >> ti) & 1;
-                
-                can_move ^= active_cv;
-                can_move ^= active_nv;
-                
-                if (!can_move) 
-                    continue;
-                
-                int n_mask = mask ^ (1 << ti);
-                
-                if (dist[nv][n_mask] > d + w)
-                {
-                    dist[nv][n_mask] = d + w;
-                    pq.emplace(d + w, nv, n_mask);
-                }
+                active_nv = (mask >> ti) & 1;
+                n_mask = mask ^ (1 << ti);
+            }
+            
+            can_move ^= active_nv;
+            
+            if (!can_move) 
+                continue;
+            
+            if (dist[nv][n_mask] > d + w)
+            {
+                dist[nv][n_mask] = d + w;
+                pq.emplace(d + w, nv, n_mask);
             }
         }
     }

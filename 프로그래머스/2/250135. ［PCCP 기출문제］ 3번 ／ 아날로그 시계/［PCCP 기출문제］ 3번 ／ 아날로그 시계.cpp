@@ -1,59 +1,58 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 한바퀴가 1일때 각 바늘은 1초에
-// 시침은 12 * 60 * 60초에 한바퀴 -> 1 / 12 * 60 * 60
-// 분침은 60 * 60 초에 한바퀴 ->  1 / (60 * 60)
-// 초침은 60초 한바퀴 ->  1 / 60
+// 시침 주기 : 12시간 = 12 * 60 * 60 = 43200 초
+// 분침 주기 : 1시간 = 60 * 60 = 3600 초
+// 초침 주기 : 60 초
 
-// 한바퀴를 12 *60 *60 으로 처리
-// 시침은 1초에 1
-// 분침은 1초에 12
-// 초침은 1초에 60 * 12 = 720
+// 초침과 분침은 1시간에 3600 / 60 - 3600 / 3600 = 59번 겹침
+// 초침과 시침은 12시간에 43200 / 60 - 43200 / 43200 = 720 - 1 = 719번 겹침
 
-const int MOD = 12 * 60 * 60;
+// 초침과 분침은 1초에 59 / 3600
+// 초침과 시침은 1초에 719 / 43200;
 
-int pos_h;
-int pos_m;
-int pos_s;
+// 시간간격 diff 초 동안
+// 초침 + 분침 => diff * 59 / 3600 번 알람
+// 초침 + 시침 => diff * 719 / 43200 번 알람
 
-int get_sec(int h, int m, int s)
+// 00시, 12시에는 겹쳐서 울려서 고려해주기
+
+int to_second(int h, int m, int s)
 {
     return h * 3600 + m * 60 + s;
 }
 
-int solution(int h1, int m1, int s1, int h2, int m2, int s2) {
-    int t1 = get_sec(h1, m1, s1);
-    int t2 = get_sec(h2, m2, s2);
+int solution(int h1, int m1, int s1, int h2, int m2, int s2) 
+{
+    const int t_12 = to_second(12, 0, 0);
     
-    pos_h = t1 % MOD;
-    pos_m = t1 * 12 % MOD;
-    pos_s = t1 * 720 % MOD;
+    int ans = 0;
     
-    int ans = 0;    
-    int ct = t1;
-
-    while (ct <= t2)
-    {
-        if (pos_m == pos_s || pos_s == pos_h) ans++;
-        if (ct == t2) break;
-        
-        int p_pos_h = pos_h;
-        int p_pos_m = pos_m;
-        int p_pos_s = pos_s;
-        
-        ct++;
-        pos_h += 1;
-        pos_m += 12;
-        pos_s += 720;
-        
-        if (p_pos_h > p_pos_s && pos_h < pos_s) ans++;
-        if (p_pos_m > p_pos_s && pos_m < pos_s) ans++;
-        
-        pos_h %= MOD;
-        pos_m %= MOD;
-        pos_s %= MOD;
-    }
-
+    int t1 = to_second(h1, m1, s1);
+    int t2 = to_second(h2, m2, s2);
+    
+    int diff = t2 - t1;
+    
+    ans += t2 * 59 / 3600;
+    ans += t2 * 719 / 43200;
+    
+    ans -= t1 * 59 / 3600;
+    ans -= t1 * 719 / 43200;
+    
+    if (t1 < t_12 && t2 >= t_12)
+        ans--;
+    
+    // t1 시간에 정확히 겹쳐있으면 알람 울려야함
+    
+    // 시침속도 : 1초에 1
+    // 분침속도 : 43200 / 3600 = 12
+    // 초침속도 : 43200 / 60 = 720
+    int start_pos_h = t1 * 1 % 43200;
+    int start_pos_m = t1 * 60 % 43200;
+    int start_pos_s = t1 * 720 % 43200;
+    
+    if (start_pos_h == start_pos_s || start_pos_m == start_pos_s) 
+        ans++;
+    
     return ans;
 }

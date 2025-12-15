@@ -1,44 +1,50 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-long long limit_e;
-int N;
-vector<int> diffs_e;
-vector<int> times_e;
+// 레벨이 높아질수록 푸는 시간이 단조 감소
+// 이분탐색
 
-// 제한시간내 풀 수 있는가?
+int N; // 문제 개수
+vector<int> diffs;
+vector<int> times;
+long long limit;
+
+
+// 현재 레벨로 제한시간내 풀이 가능
 bool check(int level)
 {
-    long long need = 0;
+    long long ct = 0;
     
     for (int i = 0 ; i < N ; i++)
-    {
-        int d = diffs_e[i];
-        int ct = times_e[i];
-        int pt = times_e[i - 1];
-        
-        if (d > level)
+    {  
+        if (diffs[i] > level)        
         {
-            need += ((long long)ct + pt) * (d - level);
+            int n = diffs[i] - level;
+            
+            while (--n >= 0)
+            {
+                // 첫 문제는 틀리지 않음
+                ct += times[i] + times[i - 1];
+            }
         }
-
-        need += ct;
         
-        if (need > limit_e)
-            break;
+        ct += times[i];
+        
+        if (ct > limit)
+            return false;
     }
     
-    return need <= limit_e;
+    return true;
 }
 
-int solution(vector<int> diffs, vector<int> times, long long limit) 
+int solution(vector<int> _diffs, vector<int> _times, long long _limit) 
 {
-    N = diffs.size();
-    limit_e = limit;
-    diffs_e = diffs;
-    times_e = times;
+    N = _diffs.size();
+    diffs = _diffs;
+    times = _times;
+    limit = _limit;
     
-    int l = 1, r = 100'000;
+    int l = 1, r = 300000;
     while (l <= r)
     {
         int m = (l + r) / 2;

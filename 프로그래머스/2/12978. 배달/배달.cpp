@@ -23,21 +23,21 @@ int solution(int N, vector<vector<int>> road, int K)
 
     vector<long long> dist(N + 1, 1e11);
 
-    priority_queue<P, vector<P>, greater<P>> pq;
-    pq.push({0, 1});
+    queue<int> q;
+    q.push(1);
     dist[1] = 0;
     
-    while (!pq.empty())
+    while (!q.empty())
     {
-        auto [cC, cV] = pq.top();
-        pq.pop();
+        int cv = q.front();
+        q.pop();
 
-        for (auto [nC, nV] : adj[cV])
+        for (auto [c, nv] : adj[cv])
         {
-            if (dist[nV] > dist[cV] + nC)
+            if (dist[nv] > dist[cv] + c)
             {
-                dist[nV] = dist[cV] + nC;
-                pq.push({dist[nV], nV});
+                dist[nv] = dist[cv] + c;
+                q.push(nv);
             }
         }
     }

@@ -1,23 +1,27 @@
 #include <bits/stdc++.h>
 using namespace std;
-using T = tuple<int, int, int>;
 
-const int INF = 1e9;
+// 모든 이동이 가중치 1 -> bfs
+// 현재 위치에서 없앨 카드를 하나 고르고 
+// cv -> card_pos1 -> card_pos2, cv -> card_pos2 -> card_pos1로 상태 분기
+// 백트래킹
+
 const int N = 4;
-set<int> card_set;
+vector<vector<int>> board;
+int C; // 카드 개수
+
+bool card_remain[7];
 vector<pair<int, int>> card_pos[7];
 
+int dist[N][N];
 bool is_card[N][N];
-
-// cost[sx][sy][ex][ey] : {sx, sy} -> {ex, ey} 최소 조작 횟수 
-int cost[N][N][N][N];
 
 vector<pair<int, int>> moves
 {
-    {1, 0},
-    {-1, 0},
     {0, 1},
     {0, -1},
+    {1, 0},
+    {-1, 0},
 };
 
 bool is_valid(int x, int y)
@@ -25,114 +29,122 @@ bool is_valid(int x, int y)
     return x >= 0 && x < N && y >= 0 && y < N;
 }
 
-void init_cost(int sx, int sy)
+int bfs(int sx, int sy, int ex, int ey)
 {
-    for (int i = 0 ; i < N ; i++)
-        for (int j = 0 ; j < N ; j++)
-            cost[sx][sy][i][j] = INF;
-}
-
-void dijkstra(int sx, int sy)
-{
-    init_cost(sx, sy);
+    memset(dist, -1, sizeof(dist));
     
-    auto* c_cost = cost[sx][sy];
+    queue<pair<int, int>> q;
     
-    priority_queue<T, vector<T>, greater<T>> pq;
+    q.emplace(sx, sy);
+    dist[sx][sy] = 0;
     
-    c_cost[sx][sy] = 0;
-    pq.emplace(0, sx, sy);
-    
-    while (!pq.empty())
+    while (!q.empty())
     {
-        auto [d, cx, cy] = pq.top();
-        pq.pop();
+        auto [cx, cy] = q.front();
+        q.pop();
         
-        if (d > c_cost[cx][cy]) continue;
+        if (cx == ex && cy == ey)
+            break;
         
         for (auto [dx, dy] : moves)
         {
-            int nx1 = cx + dx;
-            int ny1 = cy + dy;
-
-            if (is_valid(nx1, ny1) && c_cost[nx1][ny1] > d + 1)
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (!is_valid(nx, ny))
+                continue;
+            
+            if (dist[nx][ny] == -1)
             {
-                c_cost[nx1][ny1] = d + 1;
-                pq.emplace(d + 1, nx1, ny1);
+                dist[nx][ny] = dist[cx][cy] + 1;
+                q.emplace(nx, ny);
             }
             
-            int nx2 = nx1;
-            int ny2 = ny1;
+            int nx2 = nx;
+            int ny2 = ny;
             
-            while (is_valid(nx2 + dx, ny2 + dy) && !is_card[nx2][ny2])
+            while (!is_card[nx2][ny2] && is_valid(nx2 + dx, ny2 + dy))
             {
                 nx2 += dx;
                 ny2 += dy;
             }
             
-            if (is_valid(nx2, ny2) && c_cost[nx2][ny2] > d + 1)
+            if (dist[nx2][ny2] == -1)
             {
-                c_cost[nx2][ny2] = d + 1;
-                pq.emplace(d + 1, nx2, ny2);
+                dist[nx2][ny2] = dist[cx][cy] + 1;
+                q.emplace(nx2, ny2);
             }
         }
     }
+    
+    return dist[ex][ey];
 }
 
-// board 상태, 커서 위치 cx, cy 일때 다 없애기까지 필요한 최소 조작 수
-int dfs(int cx, int cy)
-{
-    // 어떤 카드를 없앨지 고르고 
-    // 없앤 상태로 dfs 돌리고
-    // 돌린 dfs 값과 고른 카드 없애는 비용 더해서 
-    // 최솟값 반환
-    
-    if (card_set.empty()) 
+void bt(int cx, int cy, int cur_cost, int& ans)
+{   
+    if (C == 0)
     {
-        return 0;
+        ans = min(cur_cost, ans);
+        return;
     }
     
-    dijkstra(cx, cy);
-    
-    int ret = INF;
-    
-    for (int card : card_set)
+    for (int card = 1 ; card <= 6 ; card++)
     {
+        if (!card_remain[card])
+            continue;
+        
         auto [tx1, ty1] = card_pos[card][0];
         auto [tx2, ty2] = card_pos[card][1];
         
-        dijkstra(tx1, ty1);
-        dijkstra(tx2, ty2);
+        int cost1 = bfs(cx, cy, tx1, ty1) + bfs(tx1, ty1, tx2, ty2) + 2;
+        int cost2 = bfs(cx, cy, tx2, ty2) + bfs(tx2, ty2, tx1, ty1) + 2;
         
-        // 엔터 두번
-        int path_cost1 = cost[cx][cy][tx1][ty1] + cost[tx1][ty1][tx2][ty2] + 2;
-        int path_cost2 = cost[cx][cy][tx2][ty2] + cost[tx2][ty2][tx1][ty1] + 2;
-        
-        is_card[tx1][ty1] = false;        
+        C--;
+        card_remain[card] = false;
+        is_card[tx1][ty1] = false;
         is_card[tx2][ty2] = false;
-        card_set.erase(card);
         
-        ret = min(ret, dfs(tx1, ty1) + path_cost2);
-        ret = min(ret, dfs(tx2, ty2) + path_cost1);
+        bt(tx1, ty1, cur_cost + cost2, ans);
+        bt(tx2, ty2, cur_cost + cost1, ans);
         
-        card_set.insert(card);
-        is_card[tx1][ty1] = true;        
+        C++;
+        card_remain[card] = true;
+        is_card[tx1][ty1] = true;
         is_card[tx2][ty2] = true;
     }
-    
-    return ret;
 }
 
-int solution(vector<vector<int>> board, int r, int c) {
+int solution(vector<vector<int>> _board, int r, int c) 
+{
+    board = _board;
+    for (auto& el : card_pos)
+        el.clear();
+    
+    memset(card_remain, false, sizeof(card_remain));
+    memset(is_card, false, sizeof(is_card));
+    
+    
     for (int i = 0 ; i < N ; i++)
         for (int j = 0 ; j < N ; j++)
         {
-            if (!board[i][j]) continue;
-            is_card[i][j] = true;
-            
-            card_set.insert(board[i][j]);
-            card_pos[board[i][j]].emplace_back(i, j);
+            if (board[i][j])
+            {
+                int card = board[i][j];
+                
+                is_card[i][j] = true;
+                card_pos[card].emplace_back(i, j);
+                card_remain[card] = true;
+            }
         }
     
-    return dfs(r, c);
+    for (int i = 1 ; i <= 6 ; i++)
+    {
+        if (card_remain[i])
+            C++;
+    }
+    
+    int ans = 10000;
+    bt(r, c, 0, ans);
+    
+    return ans;
 }

@@ -1,63 +1,81 @@
 #include <bits/stdc++.h>
-
 using namespace std;
 using T = tuple<int, int, int, int>;
+using P = pair<int, int>;
+
+// 직선으로 연결할때와 꺾을때 비용이 다름
+// => 다익스트라
 
 const int INF = 1e9;
-int dist[25][25][4];
+const int NMX = 25;
+vector<vector<int>> board;
 int N;
+
+// dist[x][y][dir] : x, y에 dir방향으로 들어오는 경로 최단거리
+int dist[NMX][NMX][4]; 
+
+enum D { R, D, L, U };
+
+vector<P> moves
+{
+    {0, 1}, // R
+    {1, 0}, // D
+    {0, -1}, // L
+    {-1, 0}, // U
+};
 
 bool is_valid(int x, int y)
 {
     return x >= 0 && x < N && y >= 0 && y < N;
 }
 
-vector<pair<int, int>> moves
+void dijkstra()
 {
-    {0, 1},
-    {0, -1},
-    {1, 0},
-    {-1, 0},
-};
-
-int solution(vector<vector<int>> board) {
-    N = board.size();
-    for (int i = 0 ; i < N ; i++)
-        for (int j = 0 ; j < N ; j++)
-            for (int dir = 0 ; dir < 4 ; dir++)
-                dist[i][j][dir] = INF;
+    // mn_cost, x, y, dir
+    priority_queue<T, vector<T>, greater<T>> pq;
     
-    priority_queue<T, vector<T>, greater<T>> pq; // d, x, y, dir
-    
-    dist[0][0][0] = 0;
-    dist[0][0][2] = 0;
-    pq.emplace(0, 0, 0, 0);
-    pq.emplace(0, 0, 0, 2);
+    pq.emplace(0, 0, 0, D); // D
+    pq.emplace(0, 0, 0, R); // R
+    dist[0][0][D] = 0;
+    dist[0][0][R] = 0;
     
     while (!pq.empty())
     {
-        auto [d, cx, cy, cd] = pq.top();
+        auto [cost, cx, cy, c_dir] = pq.top();
         pq.pop();
         
-        if (cx == N - 1 && cy == N - 1) break;
+        if (cost > dist[cx][cy][c_dir])
+            continue;
         
-        if (dist[cx][cy][cd] < d) continue;
+        if (cx == N - 1 && cy == N - 1) 
+            break;
         
-        for (int nd = 0 ; nd < 4 ; nd++)
+        for (int dir = 0 ; dir < 4 ; dir++)
         {
-            auto [dx, dy] = moves[nd];
+            auto [dx, dy] = moves[dir];
             int nx = cx + dx;
             int ny = cy + dy;
-          
-            int w = (cd == nd ? 100 : 600);
-                
-            if (is_valid(nx, ny) && !board[nx][ny] && dist[nx][ny][nd] > d + w)
+            
+            if (!is_valid(nx, ny) || board[nx][ny]) continue;
+            
+            int cw = (dir == c_dir ? 100 : 600);
+            
+            if (dist[nx][ny][dir] > cost + cw)
             {
-                dist[nx][ny][nd] = d + w;
-                pq.emplace(d + w, nx, ny, nd);
+                dist[nx][ny][dir] = cost + cw;
+                pq.emplace(cost + cw, nx, ny, dir);
             }
         }
     }
+}
+
+int solution(vector<vector<int>> _board) 
+{
+    board = _board;
+    N = board.size();
+    fill(&dist[0][0][0], &dist[0][0][0] + NMX * NMX * 4, INF);
     
-    return min(dist[N - 1][N - 1][0], dist[N - 1][N - 1][2]);
+    dijkstra();
+
+    return min(dist[N - 1][N - 1][R], dist[N - 1][N - 1][D]);
 }

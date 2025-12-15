@@ -1,10 +1,20 @@
 #include <bits/stdc++.h>
 using namespace std;
+
 using P = pair<int, int>;
 
-int N, M;
-int used[5][5];
+// mini_max, dfs
+// 입력이 작아 memo는 x
+// 다음 게임 결과 중 상대의 승리가 하나라도 있으면 그 중 가장 늦게 끝나는 쪽으로 반환
+// 다음 게임 결과 중 상대가 모두 패배하면 그 중 가장 빨리 끝나는 쪽으로 반환 
 
+const int MX = 5;
+int N, M;
+
+vector<vector<int>> board;
+int used[MX][MX];
+
+// 선공 : 0, 후공 : 1
 P pos[2];
 
 vector<P> moves
@@ -20,19 +30,13 @@ bool is_valid(int x, int y)
     return x >= 0 && x < N && y >= 0 && y < M;
 }
 
-// 내 턴에 움직일 수 있는 모든 경우에 대해 다음턴에 상대가 지는경우가 있으면 그 중 가장 끝나는 시간이 빠른 케이스로
-// 다음턴에 상대가 지는 경우가 없으면 그 중 가장 끝나는 시간이 느린 케이스로
-
-// 승리 여부, 남은 이동 횟수
-P dfs(int ct, const vector<vector<int>>& board)
+// 승리 여부, 남은 턴수
+P dfs(int turn)
 {   
-    int pn = ct % 2;
-    auto& [cx, cy] = pos[pn];
+    auto& [cx, cy] = pos[turn % 2];
     
-    if (used[cx][cy]) // 패배, 종료
-    {
+    if (used[cx][cy]) // 패배
         return {0, 0};
-    }
     
     vector<P> next_results;
     
@@ -41,69 +45,69 @@ P dfs(int ct, const vector<vector<int>>& board)
         int nx = cx + dx;
         int ny = cy + dy;
         
-        if (is_valid(nx, ny) && board[nx][ny] && !used[nx][ny])
-        {
-            int px = cx;
-            int py = cy;
-            
-            used[cx][cy] = true;
-            cx = nx;
-            cy = ny;
-            
-            next_results.push_back(dfs(ct + 1, board));
-            
-            cx = px;
-            cy = py;
-            used[cx][cy] = false;
-        }
+        if (!is_valid(nx, ny) || !board[nx][ny] || used[nx][ny])
+            continue;
+        
+        used[cx][cy] = true;
+        cx += dx;
+        cy += dy;
+        
+        next_results.push_back(dfs(turn + 1));
+        
+        cx -= dx;
+        cy -= dy;
+        used[cx][cy] = false;
     }
-
-    if (next_results.size() == 0) // 패배, 종료
-    {
+    
+    // 패배
+    if (next_results.empty())
         return {0, 0};
-    }
     
     bool can_win = false;
-    for (auto [is_win, r_cnt] : next_results)
+    for (auto [is_win, rt] : next_results)
     {
-        if (!is_win)
+        if (!is_win) // 상대의 패배
         {
             can_win = true;
-            break;   
+            break;
         }
     }
     
-    if (can_win) // 다음 턴 상대가 지는 경우가 있음 => 이번턴 내 승리
+    if (can_win)
     {
-        int c_r_cnt = 25;
-        for (auto [is_win, r_cnt] : next_results)
+        // 가장 빨리 끝나게
+        int c_rt = 25;
+        for (auto [is_win, rt] : next_results)
         {
             if (!is_win)
-            {
-                c_r_cnt = min(c_r_cnt, r_cnt);
-            }
+                c_rt = min(c_rt, rt + 1);
         }
-        return {1, c_r_cnt + 1};
+        
+        return {1, c_rt};
     }
-    else // 다음 턴 상대가 지는 경우가 없음 => 이번턴 내 패배
+    else
     {
-        int c_r_cnt = 0;
-        for (auto [is_win, r_cnt] : next_results)
+        // 상대가 모두 승리
+        // 가장 늦게 끝나게
+        int c_rt = 0;
+        for (auto [is_win, rt] : next_results)
         {
-            c_r_cnt = max(c_r_cnt, r_cnt);
+            c_rt = max(c_rt, rt + 1);
         }
-        return {0, c_r_cnt + 1};
+        
+        return {0, c_rt};
     }
 }
 
-int solution(vector<vector<int>> board, vector<int> aloc, vector<int> bloc) {
+int solution(vector<vector<int>> _board, vector<int> aloc, vector<int> bloc) 
+{
+    board = _board;
     N = board.size();
     M = board[0].size();
+    memset(used, 0, sizeof(used));
     
-    pos[0].first = aloc[0];
-    pos[0].second = aloc[1];
-    pos[1].first = bloc[0];
-    pos[1].second = bloc[1];
+    pos[0] = {aloc[0], aloc[1]};
+    pos[1] = {bloc[0], bloc[1]};
     
-    return dfs(0, board).second;
+    return dfs(0).second;
 }

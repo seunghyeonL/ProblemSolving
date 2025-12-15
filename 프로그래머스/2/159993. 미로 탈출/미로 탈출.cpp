@@ -1,97 +1,85 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+const int MX = 100;
 int N, M;
-int dist[100][100];
 
-void reset_dist()
+vector<string> board;
+int dist[MX][MX];
+
+
+
+vector<pair<int, int>> moves
 {
-    for (int i = 0 ; i < N ; i++)
-        for (int j = 0 ; j < M ; j++)
-            dist[i][j] = -1;
-}
+    {1, 0},
+    {-1, 0},
+    {0, 1},
+    {0, -1},
+};
 
 bool is_valid(int x, int y)
 {
     return x >= 0 && x < N && y >= 0 && y < M;
 }
 
-vector<pair<int, int>> moves
+int bfs(pair<int, int> sv, pair<int, int> ev)
 {
-    {0, 1},
-    {0, -1},
-    {1, 0},
-    {-1, 0},
-};
-
-void bfs(int sx, int sy, int ex, int ey, const vector<string>& maps)
-{
-    reset_dist();
+    memset(dist, -1, sizeof(dist));
+    
+    auto [sx, sy] = sv;
+    auto [ex, ey] = ev;
     
     queue<pair<int, int>> q;
+    q.push(sv);
     dist[sx][sy] = 0;
-    q.emplace(sx, sy);
     
     while (!q.empty())
     {
         auto [cx, cy] = q.front();
         q.pop();
         
-        if (cx == ex && cy == ey) break;
+        if (cx == ex && cy == ey)
+            break;
         
         for (auto [dx, dy] : moves)
         {
             int nx = cx + dx;
             int ny = cy + dy;
             
-            if (is_valid(nx, ny) && maps[nx][ny] != 'X' && dist[nx][ny] == -1)
-            {
-                dist[nx][ny] = dist[cx][cy] + 1;
-                q.emplace(nx, ny);
-            }
+            if (!is_valid(nx, ny) || board[nx][ny] == 'X' || dist[nx][ny] != -1)
+                continue;
+            
+            q.emplace(nx, ny);
+            dist[nx][ny] = dist[cx][cy] + 1;
         }
     }
+    
+    return dist[ex][ey];
 }
 
-int solution(vector<string> maps) {
-    N = maps.size();
-    M = maps[0].size();
+int solution(vector<string> _maps) 
+{
+    board = _maps;
+    N = board.size();
+    M = board[0].size();
     
-    int sx, sy, lx, ly, ex, ey;
+    pair<int, int> sv, ev, lv;
     
     for (int i = 0 ; i < N ; i++)
-        for (int j = 0 ; j < M; j++)
+        for (int j = 0 ; j < M ; j++)
         {
-            if (maps[i][j] == 'S')
-            {
-                sx = i;
-                sy = j;
-            }
-            else if (maps[i][j] == 'L')
-            {
-                lx = i;
-                ly = j;
-            }
-            else if (maps[i][j] == 'E')
-            {
-                ex = i;
-                ey = j;
-            }
+            if (board[i][j] == 'S')
+                sv = {i, j};
+            else if (board[i][j] == 'E')
+                ev = {i, j};
+            else if (board[i][j] == 'L')
+                lv = {i, j};
         }
     
-    int ans = 0;
-    bfs(sx, sy, lx, ly, maps);
-    if (dist[lx][ly] < 0)
-        return -1;
+    int d1 = bfs(sv, lv);
+    if (d1 < 0) return -1;
+    int d2 = bfs(lv, ev);
+    if (d2 < 0) return -1;
     
-    ans += dist[lx][ly];
-    
-    bfs(lx, ly, ex, ey, maps);
-    if (dist[ex][ey] < 0)
-        return -1;
-    
-    ans += dist[ex][ey];
-    
-    return ans;
-   
+    return d1 + d2;
 }

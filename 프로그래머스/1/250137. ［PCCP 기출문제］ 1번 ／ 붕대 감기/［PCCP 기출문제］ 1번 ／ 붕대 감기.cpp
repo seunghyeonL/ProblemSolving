@@ -1,65 +1,58 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int t, x, y;
-int ch, ct;
-int mxh;
+int bt, bx, by;
+int ct, ch, mh;
+int et;
 
-int dm[1001];
-
-void get_damage(int d)
+void heal()
 {
-    ct = 1;
-    ch -= d;
-}
-
-void recover()
-{
-    if (ct == t)
+    if (++ct == bt)
     {
-        ch = min(ch + x + y, mxh);
-        ct = 1;
+        ch = min(mh, ch + bx + by);
+        ct = 0;
     }
     else
-    {
-        ch = min(ch + x, mxh);
-        ct++;
-    }
+        ch = min(mh, ch + bx);
 }
 
-int solution(vector<int> bandage, int health, vector<vector<int>> attacks) {
-    t = bandage[0];
-    x = bandage[1];
-    y = bandage[2];
-    ct = 1;
-    ch = health;
-    mxh = health;
+void apply_damage(int dm)
+{
+    ch = max(0, ch - dm);
+}
+
+int solution(vector<int> bandage, int health, vector<vector<int>> attacks) 
+{
+    bt = bandage[0];
+    bx = bandage[1];
+    by = bandage[2];
     
-    int et = 0;
-    for (const auto& attack : attacks)
+    ct = 0;
+    mh = health;
+    ch = mh;
+    
+    et = attacks.back()[0];
+    
+    int t = 0;
+    int a_idx = 0;
+    bool dead = false;
+    
+    while (++t <= et)
     {
-        int at = attack[0];
-        int d = attack[1];
-        
-        dm[at] = d;
-        et = at;
-    }
-    
-    int time = 1;
-    bool is_dead = false;
-    while (time <= et)
-    {   
-        if (dm[time]) get_damage(dm[time]);
-        else recover();
-        
-        if (ch <= 0) 
+        if (attacks[a_idx][0] == t)
         {
-            is_dead = true;
+            apply_damage(attacks[a_idx++][1]);        
+            ct = 0;
+        }
+        else
+            heal();
+        
+        if (ch == 0)
+        {
+            dead = true;
             break;
         }
-        
-        time++;
     }
     
-    return is_dead ? -1 : ch;
+    return dead ? -1 : ch;
 }

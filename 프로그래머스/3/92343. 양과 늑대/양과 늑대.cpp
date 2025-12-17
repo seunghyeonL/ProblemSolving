@@ -1,52 +1,67 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 현재 방문한 노드에 따라 갈 수 있는 노드가 달라진다.
+// 현재 방문한 노드 상태가 필요
+// 방문한 양 수가 늑대 수보다 커야함
 
 const int NMX = 17;
 int N;
-vector<int> is_wolf;
 vector<int> adj[NMX];
-int memo[1 << NMX]; // memo[mask] : mask 상태부터 시작해서 새로 얻을 수 있는 최대 양 개수
 
-// mask : cv를 포함한 살펴본 노드 정보
-void dfs(int sn, int wn, int mask)
+vector<int> info;
+vector<bool> vis;
+
+int dfs(int sn, int wn)
 {
-    if (memo[mask]) return;
-    memo[mask] = sn;
-    
-    bool can_wolf = (sn >= wn + 2);
+    int ret = sn;
 
-    for (int cv = 0 ; cv < N ; cv++)
+    for (int pv = 0 ; pv < N ; pv++)
     {
-        if ((mask >> cv) & 1)
+        if (!vis[pv])
+            continue;
+        
+        for (int nv : adj[pv])
         {
-            for (int nv : adj[cv])
+            if (vis[nv])
+                continue;
+            
+            bool is_wolf = info[nv];
+            
+            if (!is_wolf)
             {
-                if ((mask >> nv) & 1) continue;
-
-                if (is_wolf[nv] && !can_wolf) continue;
-
-                dfs(sn + !is_wolf[nv], wn + is_wolf[nv], mask | (1 << nv));
+                vis[nv] = true;
+                ret = max(ret, dfs(sn + 1, wn));
+                vis[nv] = false;
+            }
+            else if (sn > wn + 1)
+            {
+                vis[nv] = true;
+                ret = max(ret, dfs(sn, wn + 1));
+                vis[nv] = false;
             }
         }
     }
+    
+    return ret;
 }
 
-
-int solution(vector<int> info, vector<vector<int>> edges) {
+int solution(vector<int> _info, vector<vector<int>> edges) 
+{
+    info = _info;
     N = info.size();
-    is_wolf = info;
+    vis.resize(N);
     
-    for (const auto& edge : edges)
+    for (auto& edge : edges)
     {
-        int p = edge[0];
-        int c = edge[1];
+        int u = edge[0];
+        int v = edge[1];
         
-        adj[p].push_back(c);
+        adj[u].push_back(v);
     }
     
-    dfs(1, 0, 1);
+    vis[0] = true;
+    int ans = dfs(1, 0);
+    vis[0] = false;
     
-    return *max_element(memo, memo + (1 << N));
+    return ans;
 }

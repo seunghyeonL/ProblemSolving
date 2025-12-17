@@ -1,21 +1,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// union by size
-
 const int NMX = 500;
 int N, M;
-int uf[NMX * NMX];
-
-int get_node_num(int x, int y)
-{
-    return M * x + y;
-}
-
-bool is_valid(int x, int y)
-{
-    return x >= 0 && x < N && y >= 0 && y < M;
-}
+vector<vector<int>> land;
+int vis[NMX][NMX]; // 클러스터 네이밍
+vector<int> c_size{0};
+int c_num;
 
 vector<pair<int, int>> moves
 {
@@ -25,76 +16,79 @@ vector<pair<int, int>> moves
     {-1, 0},
 };
 
-int find_root(int u)
+bool is_valid(int x, int y)
 {
-    if (uf[u] < 0) return u;
-    return uf[u] = find_root(uf[u]);
+    return x >= 0 && x < N && y >= 0 && y < M;
 }
 
-bool union_set(int u, int v)
+void bfs(int sx, int sy)
 {
-    u = find_root(u);
-    v = find_root(v);
+    c_num++;
+    int c_c_size = 0;
     
-    if (u == v) return false;
+    queue<pair<int, int>> q;
+    q.emplace(sx, sy);
+    vis[sx][sy] = c_num;
     
-    // u -> v
-    if (uf[u] < uf[v]) swap(u, v);
+    while (!q.empty())
+    {
+        auto [cx, cy] = q.front();
+        q.pop();
+        
+        c_c_size++;
+        
+        for (auto [dx, dy] : moves)
+        {
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (!is_valid(nx, ny) || !land[nx][ny] || vis[nx][ny])
+                continue;
+            
+            vis[nx][ny] = c_num;
+            q.emplace(nx, ny);
+        }
+    }
     
-    uf[v] = uf[u] + uf[v];
-    uf[u] = v;
-    
-    return true;
+    c_size.push_back(c_c_size);
 }
 
-
-int solution(vector<vector<int>> land) {
+int solution(vector<vector<int>> _land) 
+{
+    land = _land;
     N = land.size();
     M = land[0].size();
-    memset(uf, -1, sizeof(uf));
     
-    for (int x = 0 ; x < N ; x++)
-        for (int y = 0 ; y < M ; y++)
+    for (int i = 0 ; i < N ; i++)
+        for (int j = 0 ; j < M ; j++)
         {
-            if (!land[x][y]) continue;
-            
-            int u = get_node_num(x, y);
-            for (auto [dx, dy] : moves)
-            {
-                int nx = x + dx;
-                int ny = y + dy;
-                
-                if (!is_valid(nx, ny) || !land[nx][ny]) continue;
-                
-                int v = get_node_num(nx, ny);
-                
-                union_set(u, v);
-            }
+            if (land[i][j] && !vis[i][j])
+                bfs(i, j);
         }
-            
+    
     int ans = 0;
-    for (int y = 0 ; y < M ; y++)
+    for (int j = 0 ; j < M ; j++)
     {
+        int cur = 0;
         vector<int> cand;
-        for (int x = 0 ; x < N ; x++)
+        
+        for (int i = 0 ; i < N ; i++)
         {
-            int u = get_node_num(x, y);
-            u = find_root(u);
+            int n = vis[i][j];
             
-            if (land[u / M][u % M])
-                cand.push_back(u);
+            if (n)
+                cand.push_back(n);
         }
         
         sort(cand.begin(), cand.end());
         cand.erase(unique(cand.begin(), cand.end()), cand.end());
         
-        int sum = 0;
-        for (int u : cand)
+        for (int n : cand)
         {
-            sum += -uf[u];
+            cur += c_size[n];
         }
         
-        ans = max(ans, sum);
+        ans = max(ans, cur);
     }
     
     return ans;

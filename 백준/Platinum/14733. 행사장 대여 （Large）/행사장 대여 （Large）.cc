@@ -1,18 +1,16 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// y 좌표압축 해두고
+// 각 yi 에 대해 직사각형 시작, 끝 이벤트로 x방향 스위핑
+// 그러면서 현재 셀 너비를 채워나가기
 const int NMX = 3000;
 int N;
-// 좌표압축된 board
-// 각 좌표값은 그 cell이 채워졌는지 아닌지 여부
-short board[2 * NMX][2 * NMX];
 
-tuple<int, int, int, int> pos[NMX]; // 직사각형 모서리 두개
+vector<tuple<int, bool, int, int>> events; // x, is_end, y1, y2,
+// tuple<int, int, int, int> pos[NMX]; // 직사각형 모서리 두개
 
-vector<int> comp_x;
 vector<int> comp_y;
-
-unordered_map<int, int> idx_x;
 unordered_map<int, int> idx_y;
 
 int main(int argc, char const *argv[])
@@ -33,28 +31,19 @@ int main(int argc, char const *argv[])
         int x1, y1, x2, y2;
         cin >> x1 >> y1 >> x2 >> y2;
 
-        pos[i] = {x1, y1, x2, y2};
+        events.emplace_back(x1, 0, y1, y2);
+        events.emplace_back(x2, 1, y1, y2);
 
-        comp_x.push_back(x1);
-        comp_x.push_back(x2);
         comp_y.push_back(y1);
         comp_y.push_back(y2);
     }
 
-    sort(comp_x.begin(), comp_x.end());
-    sort(comp_y.begin(), comp_y.end());
+    sort(events.begin(), events.end());
 
-    comp_x.erase(unique(comp_x.begin(), comp_x.end()), comp_x.end());
+    sort(comp_y.begin(), comp_y.end());
     comp_y.erase(unique(comp_y.begin(), comp_y.end()), comp_y.end());
 
-    int sz_x = comp_x.size();
     int sz_y = comp_y.size();
-
-    for (int i = 0; i < sz_x; i++)
-    {
-        int x = comp_x[i];
-        idx_x[x] = i;
-    }
 
     for (int i = 0; i < sz_y; i++)
     {
@@ -62,54 +51,32 @@ int main(int argc, char const *argv[])
         idx_y[y] = i;
     }
 
-    for (int i = 0; i < N; i++)
-    {
-        auto [x1, y1, x2, y2] = pos[i];
-
-        int ix1 = idx_x[x1];
-        int ix2 = idx_x[x2];
-        int iy1 = idx_y[y1];
-        int iy2 = idx_y[y2];
-
-        board[ix1][iy1] += 1;
-        board[ix1][iy2] -= 1;
-        board[ix2][iy1] -= 1;
-        board[ix2][iy2] += 1;
-    }
-
-    for (int i = 0; i < sz_x; i++)
-    {
-        inclusive_scan(board[i], board[i] + sz_y, board[i]);
-    }
-
-    for (int j = 0; j < sz_y; j++)
-    {
-        for (int i = 1; i < sz_x; i++)
-        {
-            board[i][j] += board[i - 1][j];
-        }
-    }
-
-    // for (int i = 0; i < sz_x; i++)
-    // {
-    //     for (int j = 0; j < sz_y; j++)
-    //     {
-    //         cout << board[i][j] << ' ';
-    //     }
-    //     cout << '\n';
-    // }
-
     long long ans = 0;
-    for (int xi = 0; xi < sz_x; xi++)
-    {
-        for (int yi = 0; yi < sz_y; yi++)
-        {
-            if (board[xi][yi])
-            {
-                int diff_x = comp_x[xi + 1] - comp_x[xi];
-                int diff_y = comp_y[yi + 1] - comp_y[yi];
 
-                ans += (long long)diff_x * diff_y;
+    for (int yi = 0; yi < sz_y - 1; yi++)
+    {
+        int y = comp_y[yi];
+        int len_y = comp_y[yi + 1] - comp_y[yi]; // 현재 셀 y축 길이
+
+        // 겹쳐진 직사각형 개수
+        int cnt = 0;
+        int px{};
+        for (const auto &[x, is_end, y1, y2] : events)
+        {
+            // cell로 볼거라서 y2는 포함 x
+            if (y < y1 || y >= y2)
+                continue;
+
+            // 시작점
+            if (!is_end)
+            {
+                if (cnt++ == 0)
+                    px = x;
+            }
+            else
+            {
+                if (--cnt == 0)
+                    ans += (x - px) * len_y;
             }
         }
     }

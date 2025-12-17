@@ -1,89 +1,82 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 절반씩 나누는 모든 경우에 대해
-// 나올수 있는 A의 점수 마다 그보다 작은 B의 점수 개수를 이분탐색
+// 10C5 = 252;
+// 6^5 = 7776
+// A 조합에서 이기는 경우를 체크, 이기는 경우가 가장 많은 조합이 정답
+// A 조합에서 나올 수 있는 점수 마다 B 조합에서 나올 수 있는 점수가 더 작은 경우를 이분탐색
 
 int N;
-vector<vector<int>> dice_e;
+vector<vector<int>> dice;
 
-void rec(int sc, int idx, vector<int> &sc_arr,
-         const vector<int> &dice_idxs)
+void dfs(int idx, int acc, const vector<int>& idxs, vector<int>& res)
 {
     if (idx == N / 2)
     {
-        sc_arr.push_back(sc);
+        res.push_back(acc);
         return;
     }
     
-    const vector<int> &cur_dice = dice_e[dice_idxs[idx]];
-
-    for (int i = 0; i < 6; i++)
+    int dice_idx = idxs[idx];
+    vector<int>& c_dice = dice[dice_idx];
+    
+    for (int n : c_dice)
     {
-        rec(sc + cur_dice[i], idx + 1, sc_arr, dice_idxs);
+        dfs(idx + 1, acc + n, idxs, res);
     }
 }
 
-vector<int> solution(vector<vector<int>> dice) 
+vector<int> solution(vector<vector<int>> _dice) 
 {
+    dice = _dice;
     N = dice.size();
-    dice_e = dice;
     
-    vector<bool> mask(N);
+    vector<bool> mask(N); // A가 고른 주사위 idx
     fill(mask.begin(), mask.begin() + N / 2, true);
-    
-    int mx_a_win_num = 0;
+   
+    int mx_win_num = 0;
     vector<int> ans;
     
     do
     {
-        vector<int> a_dice_idxs;
-        vector<int> b_dice_idxs;
+        vector<int> A_idxs;
+        vector<int> B_idxs;
         
-        // A가 고른 다이스
+        vector<int> A; // 가능한 A 점수
+        vector<int> B; // 가능한 B 점수
+        
         for (int i = 0 ; i < N ; i++)
         {
             if (mask[i])
-            {
-                a_dice_idxs.push_back(i);
-            }
+                A_idxs.push_back(i);
+            else 
+                B_idxs.push_back(i);
         }
         
-        // B가 고른 다이스
-        for (int i = 0 ; i < N ; i++)
+        dfs(0, 0, A_idxs, A);
+        dfs(0, 0, B_idxs, B);
+        
+        sort(B.begin(), B.end());
+        int c_win_num = 0;
+        
+        for (int av : A)
         {
-            if (!mask[i])
-            {
-                b_dice_idxs.push_back(i);
-            }
+            // b점수가 현재 A점수보다 더 높아지는 최소 idx
+            // == A점수보다 작은 B점수 개수
+            int lbi = lower_bound(B.begin(), B.end(), av) - B.begin();
+            c_win_num += lbi;
         }
         
-        vector<int> a_score;
-        vector<int> b_score;
-        
-        rec(0, 0, a_score, a_dice_idxs);
-        rec(0, 0, b_score, b_dice_idxs);
-        
-        sort(b_score.begin(), b_score.end());
-        
-        int a_win_num = 0;
-        for (int a_sc : a_score)
+        if (mx_win_num < c_win_num)
         {
-            a_win_num += lower_bound(b_score.begin(), b_score.end(), a_sc) - b_score.begin();
-        }
-        
-        if (a_win_num > mx_a_win_num)
-        {
-            mx_a_win_num = a_win_num;
-            ans = a_dice_idxs;
+            mx_win_num = c_win_num;
+            ans = A_idxs;
         }
         
     } while(prev_permutation(mask.begin(), mask.end()));
     
-    for (int i = 0 ; i < N / 2 ; i++) 
-        ans[i]++;
-    
-    sort(ans.begin(), ans.end());
+    for (int& el : ans)
+        el++;
     
     return ans;
 }

@@ -8,46 +8,93 @@ int arr[NMX];
 void solve()
 {
     cin >> N >> K;
+
     for (int i = 0; i < N; i++)
         cin >> arr[i];
 
     sort(arr, arr + N);
 
-    int ans = 0;
-    int mn_diff = 1e9;
+    int mn_diff = 1e9 + 1;
 
-    for (int i = 0; i < N - 1; i++)
+    int l = 0, r = N - 1;
+
+    while (l < r)
     {
-        int lbi = lower_bound(arr + i + 1, arr + N, K - arr[i]) - arr;
+        int cur = arr[l] + arr[r];
+        int diff = abs(cur - K);
 
-        int cdd1 = abs(arr[i] + arr[lbi - 1] - K);
-        int cdd2 = abs(arr[i] + arr[lbi] - K);
+        mn_diff = min(mn_diff, diff);
 
-        if (lbi - 1 != i)
+        if (cur < K)
+            l++;
+        else if (cur > K)
+            r--;
+        else
         {
-            if (cdd1 == mn_diff)
-            {
-                ans++;
-            }
-            else if (cdd1 < mn_diff)
-            {
-                ans = 1;
-                mn_diff = cdd1;
-            }
-        }
-
-        if (cdd2 == mn_diff)
-        {
-            ans++;
-        }
-        else if (cdd2 < mn_diff)
-        {
-            ans = 1;
-            mn_diff = cdd2;
+            l++;
+            r--;
         }
     }
 
-    cout << ans << '\n';
+    int mn_cnt = 0;
+
+    l = 0, r = N - 1;
+    while (l < r)
+    {
+        int cur = arr[l] + arr[r];
+        int diff = abs(cur - K);
+
+        if (diff > mn_diff)
+        {
+            if (cur < K)
+                l++;
+            else
+                r--;
+
+            continue;
+        }
+
+        // diff == mn_diff;
+        if (cur == K)
+        {
+            if (arr[l] == arr[r])
+            {
+                mn_cnt += (r - l + 1) * (r - l) / 2;
+                break;
+            }
+
+            int lv = arr[l];
+            int rv = arr[r];
+            int cnt_l = 0;
+            int cnt_r = 0;
+
+            while (l <= r && arr[l] == lv)
+            {
+                l++;
+                cnt_l++;
+            }
+
+            while (l <= r && arr[r] == rv)
+            {
+                r--;
+                cnt_r++;
+            }
+
+            mn_cnt += cnt_l * cnt_r;
+        }
+        else if (cur < K)
+        {
+            mn_cnt++;
+            l++;
+        }
+        else if (cur > K)
+        {
+            mn_cnt++;
+            r--;
+        }
+    }
+
+    cout << mn_cnt << '\n';
 }
 
 int main(int argc, char const *argv[])
@@ -61,14 +108,13 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
-    /*
-     */
-
     int T;
     cin >> T;
 
     while (--T >= 0)
+    {
         solve();
+    }
 
     // inputFileStream.close();
     return 0;

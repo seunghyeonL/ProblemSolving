@@ -2,69 +2,20 @@
 using namespace std;
 
 using P = pair<int, int>;
-using ll = long long;
 
-const ll INF = 1e18;
 const int NMX = 100000;
 int N;
-P arr[NMX];
-P tmp[NMX];
+// pair<int, int> arr[NMX];
+vector<P> pos;
 
-bool comp_y(const P &a, const P &b)
+int square(int x)
 {
-    auto [ax, ay] = a;
-    auto [bx, by] = b;
-
-    return ay < by;
+    return x * x;
 }
 
-ll square(ll n)
+int get_dist(int x1, int y1, int x2, int y2)
 {
-    return n * n;
-}
-
-ll get_dist(const P &a, const P &b)
-{
-    return square(b.first - a.first) + square(b.second - a.second);
-}
-
-ll DnC(int l, int r)
-{
-    if (l == r)
-        return INF;
-
-    int m = (l + r) / 2;
-    auto [xm, ym] = arr[m];
-    
-    // 좌우 분할정복
-    ll d = min(DnC(l, m), DnC(m + 1, r));
-
-    // 구간 y에 대한 오름차순으로 정렬
-    merge(arr + l, arr + m + 1, arr + m + 1, arr + r + 1, tmp + l, comp_y);
-    copy(tmp + l, tmp + r + 1, arr + l);
-
-    vector<P> cand;
-
-    for (int i = l; i <= r; i++)
-    {
-        if (square(arr[i].first - xm) < d)
-            cand.push_back(arr[i]);
-    }
-
-    int sz = cand.size();
-
-    for (int i = 1; i < sz; i++)
-    {
-        for (int j = i - 1; j >= 0; j--)
-        {
-            if (square(cand[i].second - cand[j].second) >= d)
-                break;
-
-            d = min(d, get_dist(cand[i], cand[j]));
-        }
-    }
-
-    return d;
+    return square(x2 - x1) + square(y2 - y1);
 }
 
 int main(int argc, char const *argv[])
@@ -78,24 +29,80 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
-    /*
-        x 중간값 기준으로 오른쪽 최소거리, 왼쪽 최소거리, 교차 최소거리 비교
-       분할정복
-     */
-
     cin >> N;
+    pos.resize(N);
+
     for (int i = 0; i < N; i++)
     {
         int x, y;
         cin >> x >> y;
 
-        arr[i] = {x, y};
+        pos[i] = {x, y};
     }
 
-    sort(arr, arr + N);
+    sort(pos.begin(), pos.end());
 
-    ll ans = DnC(0, N - 1);
-    cout << (ans == INF ? 0 : ans);
+    // set이 중복 제거할거라 미리 동일 점 체크
+    for (int i = 0; i < N - 1; i++)
+    {
+        if (pos[i] == pos[i + 1])
+        {
+            cout << 0 << '\n';
+            return 0;
+        }
+    }
+
+    int mn_d = get_dist(10000, 10000, -10000, -10000);
+
+    auto compare = [](const P &a, const P &b)
+    {
+        const auto &[ax, ay] = a;
+        const auto &[bx, by] = b;
+
+        return ay == by ? ax < bx : ay < by;
+    };
+
+    // 현재까지 본 점 중 가능 후보군
+    set<P, decltype(compare)> cand(compare);
+
+    // events 벡터의 인덱스
+    // cand에서 빠르게 삭제하기 위함
+    int li = 0;
+
+    for (int i = 0; i < N; i++)
+    {
+        auto [x1, y1] = pos[i];
+
+        // 너무 x가 벌어진 점 삭제
+        while (li < i)
+        {
+            auto [x2, y2] = pos[li];
+            if (square(x2 - x1) < mn_d)
+                break;
+
+            cand.erase(pos[li++]);
+        }
+
+        // (y2 - y1)^2 < mn_d
+        // y2 > y1 - sqrt(mn_d) && y2 < y1 + sqrt(mn_d)
+        // 소수점 오차때문에 범위를 넉넉하게 ceil
+        int offset = ceil(sqrt(mn_d));
+        auto lbi = cand.lower_bound({-50000, y1 - offset});
+        auto ubi = cand.upper_bound({50000, y1 + offset});
+
+        for (auto it = lbi; it != ubi; ++it)
+        {
+            int x2 = it->first;
+            int y2 = it->second;
+
+            int d = get_dist(x1, y1, x2, y2);
+            mn_d = min(mn_d, d);
+        }
+
+        cand.emplace(x1, y1);
+    }
+
+    cout << mn_d;
 
     // inputFileStream.close();
     return 0;

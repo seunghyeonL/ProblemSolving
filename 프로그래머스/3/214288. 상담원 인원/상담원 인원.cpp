@@ -1,97 +1,83 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// 상담을 원하는 참가자가 상담 요청을 했을 때, 참가자의 상담 유형을 담당하는 멘토 중 상담 중이 아닌 멘토와 상담을 시작합니다.
+// a1 + a2 + ... + ak == n 으로 나누는 경우 완전 탐색
 
-// 만약 참가자의 상담 유형을 담당하는 멘토가 모두 상담 중이라면, 자신의 차례가 올 때까지 기다립니다. 참가자가 기다린 시간은 참가자가 상담 요청했을 때부터 멘토와 상담을 시작할 때까지의 시간입니다.
+using P = pair<int, int>;
+const int KMX = 5;
+int K, N;
 
-// 모든 멘토는 상담이 끝났을 때 자신의 상담 유형의 상담을 받기 위해 기다리고 있는 참가자가 있으면 즉시 상담을 시작합니다. 이때, 먼저 상담 요청한 참가자가 우선됩니다.
+queue<P> waiting[KMX + 1]; // {요청 시간, 소요 시간}
+vector<int> desk[KMX + 1]; // 상담 끝 시간 기록
 
-// --
-
-// 상담 요청을 유형별로 q로 관리
-// 각 유형별로 멘토 수 == 최대 사이즈 의 (상담 끝 시간) 요소 priority_queue로 상담 관리 
-// 유형별 멘토 수 배정은 완전탐색 -> 2^20 ~= 1000000
-
-const int INF = 1e9;
-vector<queue<pair<int, int>>> qs;
-vector<int> m_nums;
-
-int solution(int k, int n, vector<vector<int>> reqs) 
+int run(int c)
 {
-    qs.clear();
-    m_nums.clear();
+    queue<P>& q = waiting[c];
+    vector<int>& v = desk[c];
     
-    qs.resize(k + 1);
-    m_nums.resize(k + 1);
+    int wt = 0;
     
-    vector<int> mask(n); // 분할한 끝 point를 1로
-    mask.back() = 1;
-    fill(mask.begin(), mask.begin() + k - 1, 1);
+    while (!q.empty())
+    {
+        auto [a, b] = q.front();
+        q.pop();
+        
+        int st = a; // 상담 시작 시간
+        
+        // 가장 빨리 끝나는 상담원에게로
+        auto mn_et_it = min_element(v.begin(), v.end());     
+        int mn_et = *mn_et_it;
+        
+        st = max(st, mn_et);
+        wt += st - a;
+        
+        *mn_et_it = st + b;
+    }
+    
+    return wt;
+}
 
-    int ans = INF;
+int solution(int k, int n, vector<vector<int>> reqs) {
+    K = k;
+    N = n;
     
+    vector<int> mask(N, 0);
+    fill(mask.begin(), mask.begin() + K - 1, 1);
+    mask[N - 1] = 1;
+    
+    int ans = 1e9;
     do
     {
+        int idx = 1;
+        int cur = 1;
+        for (int b : mask)
         {
-            int ti = 1;
-            int s = -1;
-            for (int e = 0 ; e < n ; e++)
+            if (b) 
             {
-                if (mask[e] == 1)
-                {
-                    m_nums[ti++] = e - s;
-                    s = e;
-                }
+                desk[idx++].assign(cur, 0);
+                cur = 1;
             }
+            else
+                cur++;
         }
-        
-        int wt = 0;
         
         for (const auto& req : reqs)
         {
             int a = req[0];
             int b = req[1];
             int c = req[2];
-
-            qs[c].emplace(a, b);
-        }
-    
-        for (int ti = 1 ; ti <= k ; ti++)
-        {
-            auto& q = qs[ti];
-            int mx_sz = m_nums[ti];
-            priority_queue<int, vector<int>, greater<int>> pq;
             
-            while (!q.empty())
-            {
-                auto [st, dt] = q.front();
-                q.pop();
-                
-                while (!pq.empty() && pq.top() <= st)
-                {
-                    pq.pop();
-                }
-                
-                if (pq.size() < mx_sz) 
-                {
-                    pq.push(st + dt);
-                }
-                else
-                {
-
-                    wt += pq.top() - st;
-                    st = pq.top();
-                    pq.pop();
-
-                    pq.push(st + dt);  
-                }
-            }
+            waiting[c].emplace(a, b);
         }
         
-        ans = min(ans, wt);
+        int wt_acc = 0;
+        for (int t = 1 ; t <= K ; t++)
+            wt_acc += run(t);
+        
+        ans = min(ans, wt_acc);
         
     } while(prev_permutation(mask.begin(), prev(mask.end())));
+    
     
     return ans;
 }

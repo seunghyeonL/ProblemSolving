@@ -1,49 +1,46 @@
 #include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-long long solution(int n, vector<int> times)
+// 정답이 ans일때
+// t >= ans 이면 심사 가능
+// t < ans 이면 심사 불가능
+
+int N;
+vector<int> times;
+
+// 
+bool check(ll t)
 {
-    using ll = long long;
-    ll answer = 0;
-    ll maxCheckTime = 1000000000;
-
-    long double TotalCheckSpeed{0};
-    for (int time : times)
+    // 심사 가능 사람 수
+    ll n = 0;
+    
+    for (int ct : times)
     {
-        TotalCheckSpeed += (long double)(1)/time;
-    }
-
-    long double nearTime = n / TotalCheckSpeed;
-
-    ll begin = max<ll>(ll(floor(nearTime)) - maxCheckTime, 0);
-    ll end = ll(ceil(nearTime)) + maxCheckTime;
-
-    auto getPeoplePerTime = [&](ll inTime)
-    {
-        ll result = 0;
-
-        for (int time : times)
-        {
-            result += inTime/time;
-        }
-
-        return result;
-    };
-
-    while (begin <= end)
-    {
-        ll mid = begin + (end - begin) / 2;
-
-        if (getPeoplePerTime(mid) < n)
-        {
-            begin = mid + 1;
-        }
-        else
-        {
-            answer = mid;
-            end = mid - 1;
-        }
+        n += t / ct;
     }
     
-    return answer;
+    if (n >= N) 
+        return true;
+    else 
+        return false;
+}
+
+ll solution(int n, vector<int> _times) 
+{
+    N = n;
+    times = _times;
+    
+    ll l = 1, r = 1e18;
+    while (l <= r)
+    {
+        ll m = (l + r) / 2;
+        
+        if (check(m))
+            r = m - 1;
+        else
+            l = m + 1;       
+    }
+    
+    return l;
 }

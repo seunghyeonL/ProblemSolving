@@ -1,27 +1,27 @@
-#include <string>
-#include <vector>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int solution(int n, vector<int> money)
+// 0-1 무한배낭
+
+const int NMX = 100'000;
+int N;
+int dp[NMX + 1];
+
+int solution(int n, vector<int> money) 
 {
-    const int MOD = 1000000007;
-
-    sort(money.begin(), money.end());
-    vector<int> dp(n + 1, 0); // dp[i] : i원을 만드는 경우의 수
+    N = n;
+    memset(dp, 0, sizeof(dp));
     dp[0] = 1;
-
-    for (int m : money)
+    
+    // ---
+    
+    for (int coin : money)
     {
-        for (int i = m; i <= n; i++)
+        for (int i = coin ; i <= N ; i++)
         {
-            dp[i] += dp[i - m];
-
-            if (dp[i] >= MOD)
-                dp[i] -= MOD;
+            dp[i] += dp[i - coin];
         }
     }
-
-    return dp[n];
+    
+    return dp[N];
 }

@@ -26,7 +26,7 @@ vector<string> solution(vector<vector<string>> _plans)
         
         int st = get_minute(plan[1]);
         int pt = stoi(plan[2]);
-        string name = plan[0];
+        const string& name = plan[0];
         
         plans[i] = {st, pt, name};
     }

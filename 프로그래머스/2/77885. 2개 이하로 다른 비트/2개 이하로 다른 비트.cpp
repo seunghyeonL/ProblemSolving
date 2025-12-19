@@ -1,47 +1,37 @@
-#include <string>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-long long f(long long n)
-{
-    long long mask = 1;
+/*
+    0인 최하위 비트를 1로 바꾸고
+    
+    그 위치가 최하위 비트면 종료
+    아니면 한칸 하위 비트를 0으로
+*/
 
-    while (true)
-    {
-        if ((n & mask) == 0)
+vector<long long> solution(vector<long long> numbers) {
+    vector<long long> ans;
+    
+    for (ll n : numbers)
+    {   
+        int p = 0;
+        while (true)
         {
-            n |= mask;
-            break;
+            if (!(n >> p & 1)) // p 비트가 0이면
+            {
+                n ^= 1LL << p;
+                
+                if (p > 0)
+                    n ^= 1LL << (p - 1);
+                
+                break;
+            }
+            
+            p++;
         }
-        // cout << mask << '\n';
-        mask <<= 1;
+        
+        ans.push_back(n);
     }
-
-    mask >>= 1;
-
-    while (mask > 0)
-    {
-        if ((n & mask) != 0)
-        {
-            n &= ~mask;
-            break;
-        }
-        // cout << mask << '\n';
-        mask >>= 1;
-    }
-
-    return n;
-}
-
-vector<long long> solution(vector<long long> numbers)
-{
-    vector<long long> answer;
-
-    for (long long number : numbers)
-    {
-        answer.push_back(f(number));
-    }
-
-    return answer;
+    
+    return ans;
 }

@@ -1,49 +1,48 @@
-#include <string>
-#include <vector>
-#include <queue>
-#include <functional>
-#include <iostream>
-
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-int solution(int n, int k, vector<int> enemy) {
-    int answer = 0;
-    int waveNum = enemy.size();
+// enemy 길이가 1000000 -> 완전탐색 불가
+// for e : enemy
+// priority_queue에 e를 넣고 
+// e를 합치며
+// 안쓰면 죽을때 그동안 e 중 최대에 무적권 사용
+
+// 죽거나 enemy가 끝날때 까지
+
+int solution(int n, int k, vector<int> enemy) 
+{
+    int N = n;
+    int K = k;
     
-    priority_queue<int, vector<int>, greater<int>> pq(enemy.begin(), enemy.begin() + min(k, waveNum));
+    priority_queue<int> pq;
     
-    // for(int i = 0 ; i < min(k, waveNum) ; i++) 
-    // {
-    //     pq.push(enemy[i]);
-    // }
-    answer = min(k, waveNum);
+    int ans = 0;
+    ll acc = 0;
     
-    
-    
-    for(int i = min(k, waveNum) ; i < waveNum ; i++)
+    for (int e : enemy)
     {
-        int cheatMin = pq.top();
+        pq.push(e);
+        acc += e;
         
-        // cout << "i: " << i << " " << " cheatMin: " << cheatMin << " " << " enemy[i] " << enemy[i] << '\n';
-        
-        if(cheatMin < enemy[i])
+        if (acc > N)
         {
-            pq.pop();
-            n -= cheatMin;
-            pq.push(enemy[i]);
-        }
-        else
-        {
-            n -= enemy[i];
-        }
-        
-        if (n < 0)
-        {
-            break;
+            while (acc > N && K > 0 && !pq.empty())
+            {
+                K--;
+                acc -= pq.top();
+                pq.pop();
+            }
+            
+            // 막기 실패
+            if (acc > N)
+                break;
         }
         
-        answer = i + 1;
+        // 이번 라운드 성공
+        ans++;
     }
     
-    return answer;
+    
+    return ans;
 }

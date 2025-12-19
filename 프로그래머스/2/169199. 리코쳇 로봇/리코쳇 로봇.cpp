@@ -1,84 +1,80 @@
-#include <string>
-#include <vector>
-#include <queue>
-#include <tuple>
-#include <utility>
-#include <functional>
-
+#include <bits/stdc++.h>
 using namespace std;
+using P = pair<int, int>;
 
-int solution(vector<string> board)
+// 이동에 가중치 x -> bfs
+
+const int LMT = 100;
+int N, M;
+vector<string> board;
+int sx, sy, ex, ey;
+int dist[LMT][LMT];
+
+vector<P> moves
 {
-    int answer = -1;
-    int N = board.size();
-    int M = board[0].size();
+    {1, 0},
+    {-1, 0},
+    {0, 1},
+    {0, -1},
+};
 
-    vector<vector<bool>> isVisited(N, vector<bool>(M, false));
+bool is_valid(int x, int y)
+{
+    return x >= 0 && x < N && y >= 0 && y < M;
+}
 
-    auto isValid = [&](int x, int y) -> bool
-    { return x >= 0 && x < N && y >= 0 && y < M && board[x][y] != 'D'; };
-
-    vector<pair<int, int>> directions{{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-
-    pair<int, int> startPoint;
-    for (int i = 0; i < N; ++i)
-    {
-        bool findFlag = false;
-        for (int j = 0; j < M; ++j)
+int solution(vector<string> _board) 
+{
+    board = _board;
+    N = board.size();
+    M = board[0].size();
+    memset(dist, -1, sizeof(dist));
+    
+    for (int i = 0 ; i < N ; i++)
+        for (int j = 0 ; j < M ; j++)
         {
             if (board[i][j] == 'R')
             {
-                startPoint = {i, j};
-                findFlag = true;
-                break;
+                sx = i;
+                sy = j;
+            }
+            else if (board[i][j] == 'G')
+            {
+                ex = i;
+                ey = j;
             }
         }
-        if (findFlag)
-            break;
-    }
-
-    queue<tuple<int, int, int>> q; // {x, y, cnt}
-    q.push({startPoint.first, startPoint.second, 0});
-    isVisited[startPoint.first][startPoint.second] = true;
-
+    
+    queue<P> q;
+    q.emplace(sx, sy);
+    dist[sx][sy] = 0;
+    
     while (!q.empty())
     {
-        auto [curX, curY, curCnt] = q.front();
+        auto [cx, cy] = q.front();
         q.pop();
         
-        bool findFlag = false;
-        for (auto direction : directions)
-        {
-            auto [diffX, diffY] = direction;
-            int nextX = curX;
-            int nextY = curY;
-
-            // vaild한 곳 끝까지 이동
-            while (isValid(nextX + diffX, nextY + diffY))
-            {
-                nextX += diffX;
-                nextY += diffY;
-            }
-
-            // 도착지가 방문한곳이면 제자리로
-            if (isVisited[nextX][nextY])
-            {
-                continue;
-            }
-
-            if (board[nextX][nextY] == 'G')
-            {
-                answer = curCnt + 1;
-                findFlag = true;
-                break;
-            }
-
-            q.push({nextX, nextY, curCnt + 1});
-            isVisited[nextX][nextY] = true;
-        }
-        if(findFlag)
+        if (cx == ex && cy == ey)
             break;
+        
+        for (auto [dx, dy] : moves)
+        {
+            int nx = cx;
+            int ny = cy;
+            
+            while (is_valid(nx + dx, ny + dy) && board[nx + dx][ny + dy] != 'D')
+            {
+                nx += dx;
+                ny += dy;
+            }
+            
+            if (dist[nx][ny] == -1)
+            {
+                q.emplace(nx, ny);
+                dist[nx][ny] = dist[cx][cy] + 1;
+            }
+        }
     }
-
-    return answer;
+    
+    return dist[ex][ey];
 }

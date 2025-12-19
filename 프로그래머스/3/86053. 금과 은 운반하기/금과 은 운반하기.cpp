@@ -1,66 +1,73 @@
-#include <string>
-#include <vector>
-
+#include <bits/stdc++.h>
 using namespace std;
+using ll = long long;
 
-long long solution(int a, int b, vector<int> g, vector<int> s, vector<int> w, vector<int> t) {
-    using ll = long long;
-    int size = g.size();
-    const ll INF = (ll)1e15;
+// 도시에 금 a, 은 b 전달
+
+// 각 도시마다 금 은 보유량 존재
+// 각 도시에서 2t 에 w씩 운반 가능 (마지막은 t)
+
+// 최소시간 : ans
+// t < ans => 불가능
+// t >= ans => 가능
+// 이분탐색
+
+int g_need, s_need;
+int N;
+vector<int> g, s, w, t;
+
+// idx 도시에서 mt 시간에 가능한 최대 운반량
+__int128 get_w_mt(int idx, ll mt)
+{
+    int cw = w[idx];
+    int ct = t[idx];
     
-    ll answer = -1;
+    __int128 n = mt / ct;
     
-    // 시간을 기준으로 이분탐색
-    // 각 도시에서 time 시간동안 운반 가능한 광물 무게 wt :
-    // time / (2 * t[i]) * w[i] + (time % (2 * t[i]) >= t[i] ? 1 : 0)
+    return (n / 2) * cw + (n % 2) * cw;
+}
+
+// mt시간 안에 도시 건설이 가능한가?
+// g_need <= sum min(g[idx], get_w_mt(idx, mt))
+// s_need <= sum min(s[idx], get_w_mt(idx, mt))
+// g_need + s_need <= sum min(g[idx] + s[idx], get_w_mt(idx, mt));
+bool check(ll mt)
+{
+    __int128 sum1 = 0;
+    __int128 sum2 = 0;
+    __int128 sum3 = 0;
     
-    // 성공적으로 운반할 조건 :
-    // a <= min(g[i], wt[i]) 합 && b <= min(s[i], wt[i]) 합 && a + b <= min(g[i] + s[i], wt[i]) 합
-    // 세 조건을 만족하는데 한 쪽 광물이 시간안에 운송이 불가능하다고 가정할때
-    // 가능한 쪽에서 
-    
-    auto getwt = [&](ll time, int i) -> ll
+    for (int i = 0 ; i < N ; i++)
     {
-        ll wi = ll(w[i]);
-        ll ti = ll(t[i]);
-        ll trips = time / (2 * ti) + (time % (2 * ti) >= ti ? 1 : 0);
-        return wi * trips;
-    };
-    
-    auto check = [&](ll time) -> bool
-    {
-        ll gPossible = 0, sPossible = 0, bothPossible = 0;
-        
-        for (int i = 0 ; i < size ; i++)
-        {
-            ll wt = getwt(time, i);
-            ll gi = ll(g[i]);
-            ll si = ll(s[i]);
-            
-            gPossible += min<ll>(gi, wt);
-            sPossible += min<ll>(si, wt);
-            bothPossible += min<ll>(gi + si, wt);
-        }
-        
-        return a <= gPossible && b <= sPossible && a + b <= bothPossible;
-    };
-    
-    ll left = 0;
-    ll right = INF;
-    
-    while (left <= right)
-    {
-        ll mid = (left + right) / 2;
-        
-        if (check(mid))
-        {
-            right = mid - 1;
-        }
-        else
-        {
-            left = mid + 1;
-        }
+        __int128 w_mt = get_w_mt(i, mt);
+        sum1 += min(__int128(g[i]), w_mt);
+        sum2 += min(__int128(s[i]), w_mt);
+        sum3 += min(__int128(g[i] + s[i]), w_mt);
     }
+    
+    return g_need <= sum1 && s_need <= sum2 && g_need + s_need <= sum3;
+}
 
-    return left;
+ll solution(int _a, int _b, vector<int> _g, vector<int> _s, vector<int> _w, vector<int> _t) 
+{
+    g_need = _a;
+    s_need = _b;
+    g = _g;
+    s = _s;
+    w = _w;
+    t = _t;
+    N = g.size();
+        
+    ll l = 0, r = 1e18;
+    while (l <= r)
+    {
+        ll m = (l + r) / 2;
+        
+        if (check(m))
+            r = m - 1;
+        else
+            l = m + 1;
+    }
+    
+    return l;
 }

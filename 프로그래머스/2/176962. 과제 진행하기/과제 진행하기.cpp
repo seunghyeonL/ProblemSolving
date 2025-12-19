@@ -13,38 +13,50 @@ int get_minute(const string& str)
     return h * 60 + m;
 }
 
-vector<string> solution(vector<vector<string>> plans) 
+vector<string> solution(vector<vector<string>> _plans) 
 {
-    int N = plans.size();
+    int N = _plans.size();
     
-    sort(plans.begin(), plans.end(), [](const auto& a, const auto& b){
-        return a[1] < b[1];
-    });
+    // start, playtime, name
+    vector<tuple<int, int, string>> plans(N);
+    
+    for (int i = 0 ; i < N ; i++)
+    {
+        const auto& plan = _plans[i];
+        
+        int st = get_minute(plan[1]);
+        int pt = stoi(plan[2]);
+        string name = plan[0];
+        
+        plans[i] = {st, pt, name};
+    }
+    
+    sort(plans.begin(), plans.end());
     
     // 이름, 남은 시간
-    stack<pair<string, int>> st;
+    stack<pair<string, int>> stk;
     vector<string> ans;
     
-    
-    for (int pi = 0, t = 0 ; pi < N || !st.empty() ; t++)
+    for (int pi = 0, t = 0 ; pi < N || !stk.empty() ; t++)
     {
-        if (!st.empty())
+        if (!stk.empty())
         {
-            auto& [cn, rt] = st.top();
+            auto& [cn, rt] = stk.top();
 
             if (--rt == 0)
             {
                 ans.push_back(cn);
-                st.pop();
+                stk.pop();
             }
         }
         
         if (pi < N)
         {
-            const auto& plan = plans[pi];
-            if (t == get_minute(plan[1]))
+            const auto& [st, pt, name]  = plans[pi];
+            
+            if (t == st)
             {
-                st.emplace(plan[0], stoi(plan[2]));
+                stk.emplace(name, pt);
                 pi++;
             }
         }

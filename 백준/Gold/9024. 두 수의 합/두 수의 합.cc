@@ -8,93 +8,37 @@ int arr[NMX];
 void solve()
 {
     cin >> N >> K;
-
     for (int i = 0; i < N; i++)
         cin >> arr[i];
 
     sort(arr, arr + N);
 
-    int mn_diff = 1e9 + 1;
+    // sum = arr[l] + arr[r]
+    // l 증가 => sum 증가
+    // r 감소 => sum 감소
 
+    int ans = 1;
+    int mn_diff = 1e9;
     int l = 0, r = N - 1;
-
     while (l < r)
     {
-        int cur = arr[l] + arr[r];
-        int diff = abs(cur - K);
+        int sum = arr[l] + arr[r];
+        int diff = abs(sum - K);
+        if (diff == mn_diff)
+            ans++;
+        else if (diff < mn_diff)
+        {
+            ans = 1;
+            mn_diff = diff;
+        }
 
-        mn_diff = min(mn_diff, diff);
-
-        if (cur < K)
+        if (sum < K)
             l++;
-        else if (cur > K)
-            r--;
         else
-        {
-            l++;
             r--;
-        }
     }
 
-    int mn_cnt = 0;
-
-    l = 0, r = N - 1;
-    while (l < r)
-    {
-        int cur = arr[l] + arr[r];
-        int diff = abs(cur - K);
-
-        if (diff > mn_diff)
-        {
-            if (cur < K)
-                l++;
-            else
-                r--;
-
-            continue;
-        }
-
-        // diff == mn_diff;
-        if (cur == K)
-        {
-            if (arr[l] == arr[r])
-            {
-                mn_cnt += (r - l + 1) * (r - l) / 2;
-                break;
-            }
-
-            int lv = arr[l];
-            int rv = arr[r];
-            int cnt_l = 0;
-            int cnt_r = 0;
-
-            while (l <= r && arr[l] == lv)
-            {
-                l++;
-                cnt_l++;
-            }
-
-            while (l <= r && arr[r] == rv)
-            {
-                r--;
-                cnt_r++;
-            }
-
-            mn_cnt += cnt_l * cnt_r;
-        }
-        else if (cur < K)
-        {
-            mn_cnt++;
-            l++;
-        }
-        else if (cur > K)
-        {
-            mn_cnt++;
-            r--;
-        }
-    }
-
-    cout << mn_cnt << '\n';
+    cout << ans << '\n';
 }
 
 int main(int argc, char const *argv[])

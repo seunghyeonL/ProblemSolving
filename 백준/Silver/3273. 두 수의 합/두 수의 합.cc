@@ -28,50 +28,44 @@ int main(int argc, char const *argv[])
     int X;
     cin >> X;
 
-    long long res = 0;
+    long long ans = 0;
     int l = 0, r = N - 1;
     while (l < r)
     {
-        if (v[l] + v[r] == X)
-        {
-            if (v[l] == v[r])
-            {
-                int cnt = r - l + 1;
-                res += (long long)cnt * (cnt - 1) / 2;
-                break;
-            }
-            else
-            {
-                int lcnt = 1;
-                int rcnt = 1;
-                while (v[l + 1] == v[l])
-                {
-                    l++;
-                    lcnt++;
-                }
-                while (v[r - 1] == v[r])
-                {
-                    r--;
-                    rcnt++;
-                }
+        int sum = v[l] + v[r];
 
-                res += (long long)lcnt * rcnt;
-
-                l++;
-                r--;
-            }
-        }
-        else if (v[l] + v[r] < X)
+        if (v[l] == v[r])
         {
-            l++;
+            if (sum == X)
+            {
+                ans += (long long)(r - l + 1) * (r - l) / 2;
+            }
+
+            break;
         }
+
+        int cnt_l = 1;
+        int cnt_r = 1;
+
+        while (v[l + cnt_l] == v[l])
+            cnt_l++;
+
+        while (v[r + cnt_r] == v[r])
+            cnt_r++;
+
+        if (sum < X)
+            l += cnt_l;
+        else if (sum > X)
+            r -= cnt_r;
         else
         {
-            r--;
+            ans += (long long)cnt_l * cnt_r;
+            l += cnt_l;
+            r -= cnt_r;
         }
     }
 
-    cout << res << '\n';
+    cout << ans << '\n';
 
     // inputFileStream.close();
     return 0;

@@ -1,72 +1,83 @@
-#include <string>
-#include <vector>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
+using P = pair<int, int>;
 
-bool isValid(int i, int j, int N, int M)
+// 연결 가중치 x
+// bfs로 cluster naming, 식량 수 배열 구성 -> ans
+
+const int LMT = 100;
+vector<string> maps;
+
+int N, M;
+bool vis[LMT][LMT];
+
+vector<P> moves
 {
-    return i >= 0 && i < N && j >= 0 && j < M;
+    {1, 0},
+    {-1, 0},
+    {0, 1},
+    {0, -1},
+};
+
+bool is_valid(int x, int y)
+{
+    return x >= 0 && x < N && y >= 0 && y < M;
 }
 
-void dfs(int curI, int curJ, const vector<string> &maps,
-         vector<vector<bool>> &isVisited, int &result)
+// 덩어리 식량 합 반환
+int bfs(int sx, int sy)
 {
-    isVisited[curI][curJ] = true;
-    // cout << "b result: " << result << '\n';
-    result += maps[curI][curJ] - '0';
-    // cout << "maps[curI][curJ]: " << maps[curI][curJ] << '\n';
-    // cout << "result: " << result << '\n';
-    vector<pair<int, int>> direction{{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
-
-    for (auto [diffI, diffJ] : direction)
+    queue<P> q;
+    q.emplace(sx, sy);
+    vis[sx][sy] = true;
+    
+    int ret = 0;
+    
+    while (!q.empty())
     {
-        int nextI = curI + diffI;
-        int nextJ = curJ + diffJ;
-
-        if (isValid(nextI, nextJ, maps.size(), maps[0].size()) &&
-            !isVisited[nextI][nextJ])
+        auto [cx, cy] = q.front();
+        q.pop();
+        
+        ret += maps[cx][cy] - '0';
+        
+        for (auto [dx, dy] : moves)
         {
-            dfs(nextI, nextJ, maps, isVisited, result);
+            int nx = cx + dx;
+            int ny = cy + dy;
+            
+            if (!is_valid(nx, ny) || vis[nx][ny] || maps[nx][ny] == 'X')
+                continue;
+            
+            q.emplace(nx, ny);
+            vis[nx][ny] = true;
         }
     }
+    
+    return ret;
 }
 
-vector<int> solution(vector<string> maps)
+vector<int> solution(vector<string> _maps) 
 {
-    vector<int> answer;
-    int N = maps.size();
-    int M = maps[0].size();
-    vector<vector<bool>> isVisited(N, vector<bool>(M, false));
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < M; j++)
+    maps = _maps;
+    N = maps.size();
+    M = maps[0].size();
+    memset(vis, false, sizeof(vis));
+    
+    vector<int> ans;
+    
+    for (int i = 0 ; i < N ; i++)
+        for (int j = 0 ; j < M ; j++)
         {
-            isVisited[i][j] = maps[i][j] == 'X' ? true : false;
-        }
-    }
-
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < M; j++)
-        {
-            if (!isVisited[i][j])
+            if (!vis[i][j] && maps[i][j] != 'X')
             {
-                int result = 0;
-                dfs(i, j, maps, isVisited, result);
-                answer.push_back(result);
+                ans.push_back(bfs(i, j));
             }
         }
-    }
-
-    if (answer.empty())
-    {
-        answer.push_back(-1);
-        return answer;
-    }
-
-    sort(answer.begin(), answer.end());
-
-    return answer;
+    
+    sort(ans.begin(), ans.end());
+    
+    if (ans.empty())
+        ans.push_back(-1);
+    
+    return ans;
 }

@@ -72,26 +72,20 @@ int main(int argc, char const *argv[])
             if (tvi == -1)
                 continue;
 
-            bool possible = false;
-
-            int cp_cp_erase_cnt = cp_erase_cnt;
-            vector<int> cp_cp_can_erase_cnt = cp_can_erase_cnt;
+            vector<int> digit_remain(10);
             for (int i = tvi + 1; i < N; i++)
             {
-                if (cp_cp_can_erase_cnt[v[i]])
-                {
-                    cp_cp_can_erase_cnt[v[i]]--;
-                    cp_cp_erase_cnt++;
-                }
-
-                if (cp_cp_erase_cnt == E)
-                {
-                    possible = true;
-                    break;
-                }
+                digit_remain[v[i]]++;
             }
 
-            if (tvi < N - 1 && !possible)
+            bool possible = true;
+            for (int i = 0; i < 10; i++)
+            {
+                if (cp_can_erase_cnt[i] > digit_remain[i])
+                    possible = false;
+            }
+
+            if (!possible)
                 continue;
 
             ans[ai] = '0' + v[tvi];

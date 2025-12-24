@@ -12,54 +12,46 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
+    // str2 중복 허용
+
     string str1, str2;
     cin >> str1 >> str2;
 
     int N = str1.size();
     int M = str2.size();
 
-    unordered_map<char, int> idx_str2;
-    for (int i = 0; i < M; i++)
-        idx_str2[str2[i]] = i;
+    vector<int> F(M);
 
-    // str2의 idx, 현재 str2의 접두사인지 여부
-    stack<pair<char, bool>> stk;
-    string ans{};
-
-    for (char c : str1)
+    for (int i = 1, j = 0; i < M; i++)
     {
-        if (!idx_str2.count(c))
+        while (j > 0 && str2[i] != str2[j])
+            j = F[j - 1];
+
+        if (str2[i] == str2[j])
+            F[i] = ++j;
+    }
+
+    stack<pair<char, int>> stk;
+
+    for (int i = 0, j = 0; i < N; i++)
+    {
+        while (j > 0 && str1[i] != str2[j])
+            j = F[j - 1];
+
+        if (str1[i] == str2[j])
+            ++j;
+
+        stk.emplace(str1[i], j);
+
+        if (j == M)
         {
-            stk.emplace(c, false);
-            continue;
-        }
-
-        // idx_str2.count(c) == true
-        int ci = idx_str2[c];
-        if (ci == 0)
-        {
-            if (M > 1)
-                stk.emplace(c, true);
-            continue;
-        }
-
-        // ci > 0
-        if (stk.empty())
-        {
-            stk.emplace(c, false);
-            continue;
-        }
-
-        // stk.empty() == false
-        auto [pc, pb] = stk.top();
-        int pi = idx_str2[pc];
-
-        stk.emplace(c, pi + 1 == ci && pb ? true : false);
-
-        if (stk.top().second && ci == M - 1)
-        {
-            for (int i = 0; i < M; i++)
+            for (int k = 0; k < M; k++)
                 stk.pop();
+
+            if (stk.empty())
+                j = 0;
+            else
+                j = stk.top().second;
         }
     }
 
@@ -69,6 +61,7 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
+    string ans{};
     while (!stk.empty())
     {
         ans.push_back(stk.top().first);

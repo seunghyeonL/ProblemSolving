@@ -1,69 +1,54 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <fstream>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-
+const int NMX = 100000;
 int N;
-int arr[100005];
+vector<int> h;
 
-int recursion(int start, int end) {
-	if (start >= end) return arr[start];
+int main(int argc, char const *argv[])
+{
+    // #include <bits/stdc++.h>
+    // using namespace std;
 
-	int mid = (start + end) / 2;
-	int val = arr[mid];
-	int s = mid;
-	int e = mid;
-	int h = arr[mid];
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
 
-	while (s != start || e != end) {
-	
-		if (s == start) {
-			if (arr[e + 1] < h) h = arr[e + 1];
-			e = e + 1;
-			val = max(val, (e - s + 1) * h);
-		}
-		else if (e == end) {
-			if (arr[s - 1] < h) h = arr[s - 1];
-			s = s - 1;
-			val = max(val, (e - s + 1) * h);
-		}
-		else if (arr[s - 1] >= arr[e + 1]) {
-			if (arr[s - 1] < h) h = arr[s - 1];
-			s = s - 1;
-			val = max(val, (e - s + 1) * h);
-		}
-		else if (arr[s - 1] < arr[e + 1]) {
-			if (arr[e + 1] < h) h = arr[e + 1];
-			e = e + 1;
-			val = max(val, (e - s + 1) * h);
-		}
+    // ifstream inputFileStream("input.txt");
 
-	}
+    cin >> N;
+    h.resize(N);
+    for (int i = 0; i < N; i++)
+        cin >> h[i];
 
-	return max(recursion(start, mid - 1), max(val, recursion(mid + 1, end)));
-}
+    // height, height높이 직사각형을 만들 수 있는 시작점
+    stack<pair<int, int>> stk;
+    int ans = 0;
 
-int main(void) {
-	ios::sync_with_stdio(false);
-	cin.tie(NULL); cout.tie(NULL);
+    for (int i = 0; i < N; i++)
+    {
+        int ci = i;
+        while (!stk.empty() && stk.top().first >= h[i])
+        {
+            auto [height, si] = stk.top();
 
+            ans = max(ans, height * (i - si));
+            ci = si;
+            stk.pop();
+        }
 
-	cin >> N;
+        stk.emplace(h[i], ci);
+    }
 
-	for (int i = 1; i <= N; i++) {
-		cin >> arr[i];
-	}
-	
-	int s = 1;
-	int e = N;
+    while (!stk.empty())
+    {
+        auto [height, si] = stk.top();
+        ans = max(ans, height * (N - si));
+        stk.pop();
+    }
 
-	cout << recursion(1, N);
+    cout << ans << '\n';
 
-	
-	return 0;
-
+    // inputFileStream.close();
+    return 0;
 }

@@ -94,13 +94,13 @@ int main(int argc, char const *argv[])
     P D = C2 - C1;
     ld d = sqrt(dot(D, D));
 
-    if (d > r1 + r2)
+    if (d >= r1 + r2)
     {
         cout << 0.0 << '\n';
         return 0;
     }
 
-    if (d < r1 - r2 + 0.00001)
+    if (d <= r1 - r2)
     {
         cout << pi * r2 * r2 << '\n';
         return 0;

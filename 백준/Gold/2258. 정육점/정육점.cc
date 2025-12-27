@@ -1,12 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
 int N, M;
 
 vector<pair<int, int>> arr; // 가격, 무게
-vector<ll> S;               // S[i] : sum arr[0, i].second ; 무게 누적합
-vector<ll> P;               // P[i] : i번째 물건까지 얻을때 가격
+vector<int> S;              // S[i] : sum arr[0, i].second ; 무게 누적합
+vector<int> P;              // P[i] : i번째 물건까지 얻을때 가격
 
 // 가격 오름차순 -> 무게 내림차순 정렬 (같은 가격이면 더 큰 무게부터 사야함)
 // 앞에서부터 쭉 챙기면 되는데 중복이 있는 경우는 가격 계산을
@@ -74,10 +73,9 @@ int main(int argc, char const *argv[])
     int lbi = lower_bound(S.begin(), S.end(), M) - S.begin();
 
     // 이 무게 이상 얻는 가격이 가장 작은 덩어리 찾기
-    ll ans = *min_element(P.begin() + lbi, P.end());
+    int ans = *min_element(P.begin() + lbi, P.end());
     cout << ans;
 
     // inputFileStream.close();
     return 0;
 }
-

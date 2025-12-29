@@ -12,84 +12,51 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
-    // 0이 아닌 수가 가능하면 하나는 있어야함
-    // 수가 많아야함
-    // 수가 같으면 큰 수가 많아야함
-
     int N, M;
     cin >> N;
-
-    vector<int> P(N);   // P[n] : 숫자 n 가격
-    vector<int> arr(N); // 숫자들 모음(내림차순 정렬할 것)
-
-    for (int n = 0; n < N; n++)
-    {
-        int p;
-        cin >> p;
-        P[n] = p;
-    }
-
+    vector<int> P(N);
+    for (int i = 0; i < N; i++)
+        cin >> P[i];
     cin >> M;
 
-    iota(arr.begin(), arr.end(), 0);
-    // 가격순 오름차순, 번호순 내림차순
-    sort(arr.begin(), arr.end(),
-         [&P](int a, int b) { return P[a] == P[b] ? a > b : P[a] < P[b]; });
+    vector<string> dp(M + 1); // dp[i] : i원으로 만들 수 있는 최대 숫자
 
-    // 동일 가격은 가장 높은 번호만 남기기
-    arr.erase(unique(arr.begin(), arr.end(),
-                     [&P](int a, int b) { return P[a] == P[b]; }),
-              arr.end());
+    auto compare = [](const string &a, const string &b)
+    { return a.size() == b.size() ? a < b : a.size() < b.size(); };
 
-    int sz = arr.size();
-
-    // M으로 가격이 가장 낮은카드를 우선으로 최대한 많이 구매
-    // 단 0이 아닌 카드가 하나는 있어야함
-
-    string ans{};
-    // 맨 처음 카드는 0이 아닌 가장 작은 가격
-    if (arr[0] == 0)
+    // 0 을 마지막에 고려
+    for (int n = N - 1; n >= 0; n--)
     {
-        if (sz == 1 || M < P[arr[1]])
+        int p = P[n];
+
+        for (int cp = p; cp <= M; cp++)
         {
-            cout << 0 << '\n';
-            return 0;
-        }
+            // dp[j] += dp[j - p];
 
-        ans.push_back('0' + arr[1]);
-        M -= P[arr[1]];
-    }
-    else
-    {
-        ans.push_back('0' + arr[0]);
-        M -= P[arr[0]];
-    }
+            const string &prv = dp[cp - p];
 
-    // 가장 작은 가격 최대한 많이 사기
-    while (M >= P[arr[0]])
-    {
-        M -= P[arr[0]];
-        ans.push_back('0' + arr[0]);
-    }
+            // 앞자리가 0이 되지 않도록
+            if (prv.empty() && n == 0)
+                continue;
 
-    // 앞에서부터 남은 돈으로 최대한 크게 만들기
-    for (int i = 0; i < ans.size(); i++)
-    {
-        int n = ans[i] - '0';
+            string tmp{};
+            tmp.resize(prv.size() + 1);
 
-        for (int j = N - 1; j > n; j--)
-        {
-            if (P[j] <= P[n] + M)
-            {
-                ans[i] = '0' + j;
-                M = M + P[n] - P[j];
-                break;
-            }
+            // n이 들어갈 위치
+            int lbi = lower_bound(prv.begin(), prv.end(), '0' + n, greater<char>()) - prv.begin();
+
+            copy(prv.begin(), prv.begin() + lbi, tmp.begin());
+            tmp[lbi] = '0' + n;
+            copy(prv.begin() + lbi, prv.end(), tmp.begin() + lbi + 1);
+
+            dp[cp] = max(dp[cp], tmp, compare);
         }
     }
 
-    cout << ans;
+    string ans = *max_element(dp.begin(), dp.end(), compare);
+    cout << (ans.empty() ? "0" : ans);
 
     // inputFileStream.close();
     return 0;
 }
+

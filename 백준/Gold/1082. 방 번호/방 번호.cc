@@ -31,8 +31,6 @@ int main(int argc, char const *argv[])
 
         for (int cp = p; cp <= M; cp++)
         {
-            // dp[j] += dp[j - p];
-
             const string &prv = dp[cp - p];
 
             // 앞자리가 0이 되지 않도록
@@ -42,12 +40,9 @@ int main(int argc, char const *argv[])
             string tmp{};
             tmp.resize(prv.size() + 1);
 
-            // n이 들어갈 위치
-            int lbi = lower_bound(prv.begin(), prv.end(), '0' + n, greater<char>()) - prv.begin();
-
-            copy(prv.begin(), prv.begin() + lbi, tmp.begin());
-            tmp[lbi] = '0' + n;
-            copy(prv.begin() + lbi, prv.end(), tmp.begin() + lbi + 1);
+            // n은 prv의 어떤 숫자보다도 작음
+            tmp.back() = '0' + n;
+            copy(prv.begin(), prv.end(), tmp.begin());
 
             dp[cp] = max(dp[cp], tmp, compare);
         }
@@ -59,4 +54,3 @@ int main(int argc, char const *argv[])
     // inputFileStream.close();
     return 0;
 }
-

@@ -102,7 +102,7 @@ int main(int argc, char const *argv[])
                     if (nx != tx || ny != ty)
                     {
                         i = nx;
-                        ny = ny;
+                        j = ny;
                         cout << dir[d2];
                         d2 = (d2 + 2) % 4;
                     }

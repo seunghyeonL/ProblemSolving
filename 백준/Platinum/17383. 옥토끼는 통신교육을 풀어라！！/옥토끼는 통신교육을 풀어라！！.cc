@@ -7,8 +7,8 @@ int N;
 vector<ll> T;
 
 // 모든 문제풀이 사이 간격이 mx_t 이하인가?
-// lmt >= ans -> true
-// lmt < ans -> false
+// mx_t >= ans -> true
+// mx_t < ans -> false
 
 bool check(ll mx_t)
 {
@@ -47,11 +47,6 @@ bool check(ll mx_t)
             t1 += mx_t - t1 % mx_t;
 
         cnt++;
-
-        // if (mx_t == 5)
-        // {
-        //     cout << t1 << ' ' << t2 << '\n';
-        // }
     }
 
     if (cnt == N)

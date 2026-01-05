@@ -21,28 +21,14 @@ int main(int argc, char const *argv[])
     for (int i = 1; i <= L; i++)
         cin >> arr[i];
 
-    // 0 1 2
-    // 1 1 1
-
     queue<int> q; // 사거리 안 기관총 발사 기록
     for (int x = 1; x <= L; x++)
     {
         int hp = arr[x];
 
-        // if (!q.empty())
-        //     cout << q.front() << ' ' << x << '\n';
-
         if (!q.empty() && q.front() <= x - Ml)
             q.pop();
-
-        // if (!q.empty())
-        //     cout << q.front() << ' ' << x << '\n';
-
-        // cout << '\n';
-
-        // cout << (long long)Mk * (q.size() + 1) << ' ' << hp << '\n';
-        // cout << '\n';
-
+        
         if ((long long)Mk * (q.size() + 1) < hp)
         {
             if (C == 0)

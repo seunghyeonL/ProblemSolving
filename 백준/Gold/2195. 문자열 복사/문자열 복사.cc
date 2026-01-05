@@ -3,21 +3,23 @@ using namespace std;
 
 string S, P;
 int N, M;
-vector<int> F;
 
-bool kmp(string part)
+bool is_matched(int pi, int len)
 {
-    int sz = part.size();
-
-    for (int i = 0, j = 0; i < N; i++)
+    // l + len <= N
+    for (int l = 0; l <= N - len; l++)
     {
-        while (j > 0 && S[i] != part[j])
-            j = F[j - 1];
+        bool matched = true;
+        for (int i = 0; i < len; i++)
+        {
+            if (S[l + i] != P[pi + i])
+            {
+                matched = false;
+                break;
+            }
+        }
 
-        if (S[i] == part[j])
-            ++j;
-
-        if (j == sz)
+        if (matched)
             return true;
     }
 
@@ -40,23 +42,13 @@ int main(int argc, char const *argv[])
     N = S.size();
     M = P.size();
     int sz_mn = min(N, M);
-    F.resize(N);
-
-    for (int i = 1, j = 0; i < N; i++)
-    {
-        while (j > 0 && S[i] != S[j])
-            j = F[j - 1];
-
-        if (S[i] == S[j])
-            F[i] = ++j;
-    }
 
     int ans = 0;
     for (int i = 0; i < M;)
     {
         for (int len = sz_mn; len >= 1; len--)
         {
-            if (kmp(P.substr(i, len)))
+            if (is_matched(i, len))
             {
                 ans++;
                 i += len;

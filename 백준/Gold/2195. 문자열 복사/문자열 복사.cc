@@ -4,28 +4,6 @@ using namespace std;
 string S, P;
 int N, M;
 
-bool is_matched(int pi, int len)
-{
-    // l + len <= N
-    for (int l = 0; l <= N - len; l++)
-    {
-        bool matched = true;
-        for (int i = 0; i < len; i++)
-        {
-            if (S[l + i] != P[pi + i])
-            {
-                matched = false;
-                break;
-            }
-        }
-
-        if (matched)
-            return true;
-    }
-
-    return false;
-}
-
 int main(int argc, char const *argv[])
 {
     // #include <bits/stdc++.h>
@@ -44,17 +22,25 @@ int main(int argc, char const *argv[])
     int sz_mn = min(N, M);
 
     int ans = 0;
-    for (int i = 0; i < M;)
+    for (int i = 0; i < M;) // P idx
     {
-        for (int len = sz_mn; len >= 1; len--)
+        int mx_len = 0;
+        for (int lj = 0; lj < N; lj++) // S left idx
         {
-            if (is_matched(i, len))
+            int ci = i;
+            int cj = lj;
+            int len = 0;
+
+            while (ci < M && cj < N && P[ci] == S[cj])
             {
-                ans++;
-                i += len;
-                break;
+                ci++, cj++, len++;
             }
+
+            mx_len = max(mx_len, len);
         }
+
+        i += mx_len;
+        ans++;
     }
 
     cout << ans;

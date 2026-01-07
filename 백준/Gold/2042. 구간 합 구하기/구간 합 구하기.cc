@@ -2,13 +2,26 @@
 using namespace std;
 
 using ll = long long;
-
-const int NMX = 1000000;
+constexpr int NMX = 1000000;
 int N, M, K;
+
 ll arr[NMX + 1];
 ll FT[NMX + 1];
 
-ll find_sum(ll i)
+void init_FT()
+{
+    for (int i = 1; i <= N; i++)
+        FT[i] = arr[i];
+
+    for (int i = 1; i <= N; i++)
+    {
+        int pi = i + (i & -i);
+        if (pi <= N)
+            FT[pi] += FT[i];
+    }
+}
+
+ll get_prefix_sum(int i)
 {
     ll ret = 0;
     while (i > 0)
@@ -19,7 +32,12 @@ ll find_sum(ll i)
     return ret;
 }
 
-void update(ll i, ll diff)
+ll get_range_sum(int l, int r)
+{
+    return get_prefix_sum(r) - get_prefix_sum(l - 1);
+}
+
+void update(int i, ll diff)
 {
     while (i <= N)
     {
@@ -39,19 +57,11 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
-    /*
-     */
-
     cin >> N >> M >> K;
     for (int i = 1; i <= N; i++)
-    {
         cin >> arr[i];
-    }
 
-    for (int i = 1; i <= N; i++)
-    {
-        update(i, arr[i]);
-    }
+    init_FT();
 
     for (int i = 0; i < M + K; i++)
     {
@@ -60,13 +70,12 @@ int main(int argc, char const *argv[])
 
         if (a == 1)
         {
-            ll diff = c - arr[b];
+            update(b, c - arr[b]);
             arr[b] = c;
-            update(b, diff);
         }
         else
         {
-            cout << find_sum(c) - find_sum(b - 1) << '\n';
+            cout << get_range_sum(b, c) << '\n';
         }
     }
 

@@ -1,39 +1,57 @@
-#include <iostream>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-int Index[100001];
-int inorder[100001];
-int postorder[100001];
-int n;
+constexpr int NMX = 100000;
+int N;
+int post[NMX];
+int in[NMX];
+int in_idx[NMX + 1];
 
-
-void getPreOrder(int inStart, int inEnd, int postStart, int postEnd)
+void rec(int in_l, int in_r, int post_l, int post_r)
 {
-	if (inStart > inEnd || postStart > postEnd)
-		return;
-		int rootIndex = Index[postorder[postEnd]];
-	int leftSize = rootIndex - inStart;
-	int rightSize = inEnd - rootIndex;
-	cout << inorder[rootIndex] << ' '; 
-	
-	getPreOrder(inStart, rootIndex - 1, postStart, postStart + leftSize - 1);
-	getPreOrder(rootIndex + 1, inEnd, postStart + leftSize, postEnd - 1);
+    if (in_l > in_r || post_l > post_r)
+        return;
+
+    int root = post[post_r];
+
+    int in_root_idx = in_idx[root];
+
+    int left_sub_tree_num = (in_root_idx - 1) - in_l + 1;
+    int right_sub_tree_num = in_r - (in_root_idx + 1) + 1;
+
+    cout << root << ' ';
+
+    // left sub tree
+    rec(in_l, in_root_idx - 1, post_l, post_l + left_sub_tree_num - 1);
+
+    // right sub tree
+    rec(in_root_idx + 1, in_r, post_r - 1 - right_sub_tree_num + 1, post_r - 1);
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
-	ios::sync_with_stdio(false);
-	cin.tie(NULL);cout.tie(NULL);
+    // #include <bits/stdc++.h>
+    // using namespace std;
 
-	cin >> n;
-	for (int i = 1; i <= n; i++)
-	{
-		cin >> inorder[i];
-		Index[inorder[i]] = i; 
-	}
-	for (int i = 1; i <= n; i++)
-		cin >> postorder[i];
-	getPreOrder(1, n, 1, n);
-	return 0;
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
+
+    // ifstream inputFileStream("input.txt");
+
+    cin >> N;
+
+    for (int i = 0; i < N; i++)
+    {
+        cin >> in[i];
+        in_idx[in[i]] = i;
+    }
+
+    for (int i = 0; i < N; i++)
+        cin >> post[i];
+
+    rec(0, N - 1, 0, N - 1);
+
+    // inputFileStream.close();
+    return 0;
 }

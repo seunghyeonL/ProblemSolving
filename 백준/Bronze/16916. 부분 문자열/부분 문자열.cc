@@ -1,22 +1,5 @@
 #include <bits/stdc++.h>
-using namespace std;    
-
-const int SZMX = 1000000;
-string S, P;
-int sz;
-int F[SZMX]; // P 실패함수
-
-void build_F()
-{
-    for (int i = 1, j = 0; i < P.size(); i++)
-    {
-        while (j > 0 && P[i] != P[j])
-            j = F[j - 1];
-
-        if (P[i] == P[j])
-            F[i] = ++j;
-    }
-}
+using namespace std;
 
 int main(int argc, char const *argv[])
 {
@@ -29,28 +12,70 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
+    string S, P;
     cin >> S >> P;
-    sz = S.size();
 
-    build_F();
+    int N = S.size();
+    int M = P.size();
 
-    int ans = 0;
-    for (int i = 0, j = 0; i < sz; i++)
+    if (N < M)
     {
-        while (j > 0 && S[i] != P[j])
-            j = F[j - 1];
-
-        if (S[i] == P[j])
-            j++;
-
-        if (j == P.size())
-        {
-            ans = 1;
-            break;
-        }
+        cout << 0 << '\n';
+        return 0;
     }
 
-    cout << ans;
+    using ull = unsigned long long;
+
+    int B = 918237733;
+    ull mx_pow_B = 1;
+    for (int i = 1; i < M; i++)
+        mx_pow_B *= B;
+
+    ull h{}, ph{};
+    for (int i = 0; i < M; i++)
+    {
+        h *= B;
+        h += (S[i] - 'a');
+    }
+
+    for (int i = 0; i < M; i++)
+    {
+        ph *= B;
+        ph += (P[i] - 'a');
+    }
+
+    int ans = 0;
+
+    for (int l = 0, r = M; r <= N; l++, r++)
+    {
+        if (ph == h)
+        {
+            bool ok = true;
+            for (int i = 0; i < M; i++)
+            {
+                if (P[i] != S[l + i])
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (ok)
+            {
+                cout << 1 << '\n';
+                return 0;
+            }
+        }
+
+        if (r == N)
+            break;
+
+        h -= mx_pow_B * (S[l] - 'a');
+        h *= B;
+        h += S[r] - 'a';
+    }
+
+    cout << 0 << '\n';
 
     // inputFileStream.close();
     return 0;

@@ -2,44 +2,31 @@
 using namespace std;
 using ll = long long;
 
-// 정답이 ans일때
-// t >= ans 이면 심사 가능
-// t < ans 이면 심사 불가능
+// t 초에 가능한가?
+// t < ans => false
+// t >= ans => true
 
-int N;
-vector<int> times;
-
-// 
-bool check(ll t)
+bool check(ll t, const int n, const vector<int>& times)
 {
-    // 심사 가능 사람 수
-    ll n = 0;
+    // t초에 심사 가능한 인원
+    ll total = accumulate(times.begin(), times.end(), 0LL, [&](ll acc, ll cur){
+        return acc += t / cur;
+    });
     
-    for (int ct : times)
-    {
-        n += t / ct;
-    }
-    
-    if (n >= N) 
-        return true;
-    else 
-        return false;
+    return total >= n;
 }
 
-ll solution(int n, vector<int> _times) 
-{
-    N = n;
-    times = _times;
+long long solution(int n, vector<int> times) {
     
     ll l = 1, r = 1e18;
     while (l <= r)
     {
         ll m = (l + r) / 2;
         
-        if (check(m))
+        if (check(m, n, times))
             r = m - 1;
-        else
-            l = m + 1;       
+        else 
+            l = m + 1;
     }
     
     return l;

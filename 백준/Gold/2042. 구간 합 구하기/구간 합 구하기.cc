@@ -2,48 +2,48 @@
 using namespace std;
 
 using ll = long long;
-constexpr int NMX = 1000000;
+
+const int NMX = 1000000;
 int N, M, K;
-
 ll arr[NMX + 1];
-ll FT[NMX + 1];
+ll ST[4 * NMX];
 
-void init_FT()
+ll initST(int cv, int s, int e)
 {
-    for (int i = 1; i <= N; i++)
-        FT[i] = arr[i];
+    if (s == e)
+        return ST[cv] = arr[s];
 
-    for (int i = 1; i <= N; i++)
-    {
-        int pi = i + (i & -i);
-        if (pi <= N)
-            FT[pi] += FT[i];
-    }
+    int m = (s + e) / 2;
+
+    return ST[cv] = initST(cv * 2, s, m) + initST(cv * 2 + 1, m + 1, e);
 }
 
-ll get_prefix_sum(int i)
+void update(int cv, int s, int e, int idx, ll dif)
 {
-    ll ret = 0;
-    while (i > 0)
-    {
-        ret += FT[i];
-        i -= (i & -i);
-    }
-    return ret;
+    if (e < idx || idx < s)
+        return;
+
+    ST[cv] += dif;
+
+    if (s == e)
+        return;
+
+    int m = (s + e) / 2;
+
+    update(cv * 2, s, m, idx, dif);
+    update(cv * 2 + 1, m + 1, e, idx, dif);
 }
 
-ll get_range_sum(int l, int r)
+ll findSum(int cv, int s, int e, int l, int r)
 {
-    return get_prefix_sum(r) - get_prefix_sum(l - 1);
-}
+    if (e < l || r < s)
+        return 0;
 
-void update(int i, ll diff)
-{
-    while (i <= N)
-    {
-        FT[i] += diff;
-        i += (i & -i);
-    }
+    if (l <= s && e <= r)
+        return ST[cv];
+
+    int m = (s + e) / 2;
+    return findSum(2 * cv, s, m, l, r) + findSum(2 * cv + 1, m + 1, e, l, r);
 }
 
 int main(int argc, char const *argv[])
@@ -57,11 +57,16 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
+    /*
+     */
+
     cin >> N >> M >> K;
     for (int i = 1; i <= N; i++)
+    {
         cin >> arr[i];
+    }
 
-    init_FT();
+    initST(1, 1, N);
 
     for (int i = 0; i < M + K; i++)
     {
@@ -70,12 +75,13 @@ int main(int argc, char const *argv[])
 
         if (a == 1)
         {
-            update(b, c - arr[b]);
+            ll dif = c - arr[b];
             arr[b] = c;
+            update(1, 1, N, b, dif);
         }
         else
         {
-            cout << get_range_sum(b, c) << '\n';
+            cout << findSum(1, 1, N, b, c) << '\n';
         }
     }
 

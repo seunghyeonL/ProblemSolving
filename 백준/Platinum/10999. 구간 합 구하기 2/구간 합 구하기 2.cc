@@ -2,72 +2,101 @@
 using namespace std;
 
 using ll = long long;
-constexpr int NMX = 1000000;
+
+const int NMX = 1000000;
 int N, M, K;
-
 ll arr[NMX + 1];
-ll D[NMX + 1];
-ll BIT1[NMX + 1]; // 1차항 계수
-ll BIT2[NMX + 1]; // 상수항
+__int128 ST[4 * NMX];
+__int128 lazy[4 * NMX];
 
-void init_BIT()
+__int128 initST(int cv, int s, int e)
 {
-    for (int i = 1; i <= N; i++)
+    if (s == e)
+        return ST[cv] = arr[s];
+
+    int m = (s + e) / 2;
+
+    return ST[cv] = initST(cv * 2, s, m) + initST(cv * 2 + 1, m + 1, e);
+}
+
+void printbint(__int128 n)
+{
+    vector<int> v;
+    bool isNeg = n < 0;
+    if (isNeg)
+        n = -n;
+
+    while (n > 0)
     {
-        BIT1[i] = D[i];
-        BIT2[i] = -D[i] * (i - 1);
+        v.push_back(n % 10);
+        n /= 10;
     }
 
-    for (int i = 1; i <= N; i++)
+    reverse(v.begin(), v.end());
+
+    if (isNeg)
+        cout << '-';
+
+    for (int el : v)
     {
-        int pi = i + (i & -i);
-        if (pi <= N)
+        cout << el;
+    }
+    cout << '\n';
+}
+
+void updateLazy(int cv, int s, int e)
+{
+    if (lazy[cv] != 0)
+    {
+        ST[cv] += (e - s + 1) * lazy[cv];
+
+        if (s != e) // leaf가 아닐때
         {
-            BIT1[pi] += BIT1[i];
-            BIT2[pi] += BIT2[i];
+            lazy[2 * cv] += lazy[cv];
+            lazy[2 * cv + 1] += lazy[cv];
         }
+
+        lazy[cv] = 0;
     }
 }
 
-void update_BIT(int i, ll diff, ll *BIT)
+void updateRange(int cv, int s, int e, int l, int r, __int128 dif)
 {
-    while (i <= N)
+    updateLazy(cv, s, e);
+
+    if (e < l || r < s)
+        return;
+
+    if (l <= s && e <= r)
     {
-        BIT[i] += diff;
-        i += (i & -i);
+        ST[cv] += (e - s + 1) * dif;
+
+        if (s != e)
+        {
+            lazy[2 * cv] += dif;
+            lazy[2 * cv + 1] += dif;
+        }
+        return;
     }
+
+    int m = (s + e) / 2;
+
+    updateRange(cv * 2, s, m, l, r, dif);
+    updateRange(cv * 2 + 1, m + 1, e, l, r, dif);
+    ST[cv] = ST[2 * cv] + ST[2 * cv + 1];
 }
 
-void update_range(int l, int r, ll diff)
+__int128 findSum(int cv, int s, int e, int l, int r)
 {
-    update_BIT(l, diff, BIT1);
-    if (r + 1 <= N)
-        update_BIT(r + 1, -diff, BIT1);
+    updateLazy(cv, s, e);
+    if (e < l || r < s)
+        return 0;
 
-    update_BIT(l, -diff * (l - 1), BIT2);
-    if (r + 1 <= N)
-        update_BIT(r + 1, diff * r, BIT2);
-}
+    if (l <= s && e <= r)
+        return ST[cv];
 
-ll get_sum_BIT(int i, ll *BIT)
-{
-    ll ret = 0;
-    while (i > 0)
-    {
-        ret += BIT[i];
-        i -= (i & -i);
-    }
-    return ret;
-}
-
-ll get_sum(int i)
-{
-    return get_sum_BIT(i, BIT1) * i + get_sum_BIT(i, BIT2);
-}
-
-ll get_range_sum(int l, int r)
-{
-    return get_sum(r) - get_sum(l - 1);
+    int m = (s + e) / 2;
+    return findSum(2 * cv, s, m, l, r) + findSum(2 * cv + 1, m + 1, e, l, r);
 }
 
 int main(int argc, char const *argv[])
@@ -81,30 +110,36 @@ int main(int argc, char const *argv[])
 
     // ifstream inputFileStream("input.txt");
 
+    /*
+     */
+
     cin >> N >> M >> K;
     for (int i = 1; i <= N; i++)
+    {
         cin >> arr[i];
+    }
 
-    D[1] = arr[1];
-    for (int i = 2; i <= N; i++)
-        D[i] = arr[i] - arr[i - 1];
-
-    init_BIT();
+    initST(1, 1, N);
 
     for (int i = 0; i < M + K; i++)
     {
-        ll a, b, c;
-        cin >> a >> b >> c;
+        int a;
+        cin >> a;
 
         if (a == 1)
         {
+            int b, c;
             ll d;
-            cin >> d;
+            cin >> b >> c >> d;
 
-            update_range(b, c, d);
+            updateRange(1, 1, N, b, c, d);
         }
         else
-            cout << get_range_sum(b, c) << '\n';
+        {
+            int b, c;
+            cin >> b >> c;
+            printbint(findSum(1, 1, N, b, c));
+        }
     }
 
     // inputFileStream.close();
